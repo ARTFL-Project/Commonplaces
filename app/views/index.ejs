@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html ng-app="DiggingApp">
+<head>
+  <title>Digging Into Data</title>
+   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+   <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+  <div class="container-fluid" ng-controller="MainCtrl as main">
+    
+    <!--Search form-->
+    <form id="search-form" class="panel panel-default" ng-submit="main.submit()">
+      <img src="img/logo.png" alt="Digging Into Data logo" style="width: 55px; height: 30px">
+      <div class="row">
+        <div class="col-xs-12 col-sm-6">
+          <div class="row search-field">
+            <div class="col-xs-12 col-sm-2">
+                Author:
+             </div>
+             <div class="col-xs-12 col-sm-10">
+               <input type="text" class="form-control" ng-model="main.formData.sourceauthor">
+             </div>
+          </div>
+        </div>
+        <div class="col-xs-12 col-sm-6">
+          <div class="row search-field">
+            <div class="col-xs-12 col-sm-2">
+                Title:
+             </div>
+             <div class="col-xs-12 col-sm-10">
+               <input type="text" class="form-control" ng-model="main.formData.sourcetitle">
+             </div>
+          </div>
+        </div>
+        <div class="col-xs-12 col-sm-6">
+          <div class="row search-field">
+            <div class="col-xs-12 col-sm-2">
+                Date:
+             </div>
+             <div class="col-xs-12 col-sm-10">
+               <input type="text" class="form-control" ng-model="main.formData.sourcedate">
+             </div>
+          </div>
+        </div>
+        <div class="col-xs-12 col-sm-6">
+          <div class="search-field">
+            <button type="submit" class="btn btn-primary pull-right">Search</button>
+          </div>
+        </div>
+      </div>
+    </form>
+    <!--End of search form-->
+    
+    <div id="results" class="panel panel-default" ng-if="main.results">
+      <h5>{{ main.results.length }} sources found...</h5>
+      <div class="panel panel-default result" ng-repeat="result in main.results track by $index">
+        <h4>{{ ::result.sourceauthor }}, <i>{{ ::result.sourcetitle }}</i> [{{ ::result.sourcedate }}]</h4>
+        <h5>{{ ::result.number_of_matches }} matching <span ng-pluralize count="result.number_of_matches" when="{'one': 'passage', 'other': 'passages'}"></span></h5>
+        <p ng-bind-html="result.sourcematchcontext | unsafe"></p>
+        <ol>
+          <li ng-repeat="target in result.target_alignment track by $index">
+            <b>{{ :: target.sourceauthor }}, <i>{{ ::target.sourcetitle }}</i> [{{ ::target.sourcedate }}]</b>
+            <p ng-bind-html="target.sourcematchcontext | unsafe"></p>
+          </li>
+        </ol>
+      </div>
+    </div>
+    
+  </div>
+    
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js" type="text/javascript"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.3/jquery-ui.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.3/angular.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.3/angular-route.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.3/angular-resource.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.3/angular-route.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.3/angular-animate.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.3/angular-touch.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.3/angular-sanitize.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.3/angular-cookies.min.js"></script>
+  <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+  <script src="app.js"></script>
+  <script src="services.js"></script>
+  <script src="filters.js"></script>
+</body>
+</html>

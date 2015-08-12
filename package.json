@@ -1,0 +1,21 @@
+{
+  "name": "digging",
+  "version": "1.0.0",
+  "description": "Digging Into Data browser",
+  "main": "routes.js",
+  "dependencies": {
+    "body-parser": "^1.13.3",
+    "ejs": "^2.3.3",
+    "express": "^4.13.3",
+    "method-override": "^2.0.2",
+    "mongodb": "^2.0.40",
+    "mongoose": "^4.1.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "Clovis Gladstone",
+  "license": "GPL-3.0"
+}

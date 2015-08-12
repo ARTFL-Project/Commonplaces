@@ -1,0 +1,71 @@
+.btn, .panel, .panel-heading, .list-group-item:first-child, .list-group-item:last-child, .popover, .progress, .form-control, .tooltip-inner, .modal-content {
+    border-radius: 0px !important;
+}
+body {
+	color: rgb(61, 61, 61);
+	background-color: rgb(21, 95, 131);
+}
+
+/* Navbar colors */
+.navbar-inverse, .panel-default > .panel-heading {
+    background:rgb(21, 67, 95) !important;
+}
+.navbar-brand:hover, .navbar-inverse .navbar-nav>li>a:hover, .panel-default > .panel-heading {
+    color: #fff !important;
+}
+.navbar {
+    box-shadow: 0px .2em 8px .01em rgba(0,0,0,0.2);
+}
+.navbar-brand, .navbar-inverse a {
+    color: rgb(236,237,238) !important;
+}
+.navbar-right a:hover {
+	color: #fff !important;
+}
+.highlight {
+	color: rgb(174, 89, 80);
+}
+
+/* Button colors */
+.btn-primary {
+    background: rgb(21, 95, 131);
+    transition: background-color 200ms;
+	border-color: transparent;
+}
+.btn-primary:hover, .btn-primary:focus {
+    background: rgba(21, 95, 131, .8);
+	border-color: transparent;
+	outline: 0;
+}
+.btn-primary.active, .open>.dropdown-toggle.btn-primary, #collocation_table th {
+    background: rgb(21, 67, 95);
+	border-color: transparent;
+	color: #fff;
+}
+.btn-primary[disabled] {
+	background-color: rgb(91, 150, 173);
+	border-color: transparent;
+}
+
+/* Links */
+a {
+    color: rgb(21, 95, 131);
+	font-weight: 400;
+	transition: all 200ms;
+}
+a:hover {
+    color: rgb(128,0,0) !important;
+	text-decoration: none;
+}
+
+#search-form {
+	margin-top: 20px;
+	padding: 10px;
+}
+.search-field {
+	padding: 10px;
+}
+#results, .result {
+	margin-top: 20px;
+	padding: 20px;
+}
