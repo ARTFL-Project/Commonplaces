@@ -9,7 +9,10 @@ var mergeAlignment = new Schema({
     sourcematchcontext: {type: String, default: ''},
     sourcematchdate: {type: String, default: ''},
     id: {type: Number, default: 0},
-    target_alignment: {type: Array, default: []}
+    target_alignment: {type: Array, default: [],
+    _id: {type: Schema.Types.ObjectId}}
 });
 
 mongoose.model('merged_alignment', mergeAlignment);
+mongoose.model('mergedNoFilter', mergeAlignment);
+mongoose.model('merged_trigrams_two', mergeAlignment);

@@ -1,24 +1,42 @@
 var DiggingApp = angular.module('DiggingApp', ['ngRoute', 'ngTouch', 'ngSanitize', 'ngCookies']);
 
-DiggingApp.controller('MainCtrl', ['$http', 'URL', function($http, URL){
+DiggingApp.controller('MainCtrl', ['$http', '$anchorScroll', 'URL', function($http, $anchorScroll, URL){
 	
 	var vm = this;
 	
 	vm.formData = {}
 	
-	vm.submit = function() {
-		vm.results = [];
+	getData = function() {
 		if (angular.equals({}, vm.formData)) {
             $http.get('DiggingIntoData/all').then(function(response) {
 				vm.results = response.data;
+				$anchorScroll(0);
 			});
         } else {
+			if (typeof(vm.formData.page) === 'undefined') {
+                vm.formData.page = 1;
+            }
+			console.log(vm.formData.page)
 			var urlString = URL.objectToString(vm.formData);
 			$http.get('DiggingIntoData/some?' + urlString).then(function(response) {
-				vm.results = highlightPassages(response.data);
+				vm.results = highlightPassages(response.data.results);
+				vm.count = response.data.count;
+				$anchorScroll(0);
 			});
 		}
+	}
+	
+	vm.submit = function() {
+		vm.results = [];
+		vm.currentPageNumber = 1;
+		getData();
 	};
+	
+	vm.goToPage = function(pageNumber) {
+		vm.formData.page = pageNumber;
+		vm.currentPageNumber = pageNumber;
+		getData();
+	}
 }]);
 
 	
@@ -143,7 +161,7 @@ var stopwords = ['(', ')', '&', 'volume', 'a', 'about', 'above', 'across', 'afte
                  'us', 'use', 'used', 'uses', 'v', 'very', 'w', 'want', 'wanted', 'wanting', 'wants', 'was', 'way', 'ways',
                  'we', 'well', 'wells', 'went', 'were', 'what', 'when', 'where', 'whether', 'which', 'while', 'who', 'whole',
                  'whose', 'why', 'will', 'with', 'within', 'without', 'work', 'worked', 'working', 'works', 'would', 'x',
-                 'y', 'year', 'years', 'yet', 'you', 'young', 'younger', 'youngest', 'your', 'yours', 'z'];
+                 'y', 'year', 'years', 'yet', 'you', 'young', 'younger', 'youngest', 'your', 'yours', 'z', 'thy', 'thou', 'thee'];
 
 function tokenize(words) {
 	words = replaceDiacritics(words);

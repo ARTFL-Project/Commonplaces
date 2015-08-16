@@ -16,6 +16,8 @@ module.exports = function() {
     require('../app/routes/index.server.routes.js')(app);
 	require('../app/routes/queryAll.server.routes.js')(app);
 	require('../app/routes/querySome.server.routes.js')(app);
+    require('../app/routes/showCollections.server.routes.js')(app);
+    
 	
 	app.use(express.static('./public'));
     return app;

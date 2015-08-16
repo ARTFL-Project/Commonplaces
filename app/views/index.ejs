@@ -2,6 +2,8 @@
 <html ng-app="DiggingApp">
 <head>
   <title>Digging Into Data</title>
+      <link href="http://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic,700,700italic&subset=latin,cyrillic-ext,greek-ext,greek,latin-ext,cyrillic" rel="stylesheet">
+
    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
    <link rel="stylesheet" href="css/style.css">
 </head>
@@ -44,6 +46,30 @@
           </div>
         </div>
         <div class="col-xs-12 col-sm-6">
+          <div class="row search-field">
+            <div class="col-xs-12 col-sm-2">
+                Text context:
+             </div>
+             <div class="col-xs-12 col-sm-10">
+               <input type="text" class="form-control" ng-model="main.formData.sourcematchcontext">
+             </div>
+          </div>
+        </div>
+        <div class="col-xs-12 col-sm-6">
+          <div class="row search-field">
+            <div class="col-xs-12 col-sm-2">
+                Database:
+             </div>
+             <div class="col-xs-12 col-sm-10">
+              <select ng-model="main.formData.model">
+                <option value="merged_alignments">Bigrams same author filtered</option>
+                <option value="mergedNoFilter">Three matching bigrams (skip one word)</option>
+                <option value="merged_trigrams_two">Two matching trigrams</option>
+              </select>
+             </div>
+          </div>
+        </div>
+        <div class="col-xs-12 col-sm-offset-6 col-sm-6">
           <div class="search-field">
             <button type="submit" class="btn btn-primary pull-right">Search</button>
           </div>
@@ -53,18 +79,38 @@
     <!--End of search form-->
     
     <div id="results" class="panel panel-default" ng-if="main.results">
-      <h5>{{ main.results.length }} sources found...</h5>
+      <h5>{{ main.count }} sources found...</h5>
       <div class="panel panel-default result" ng-repeat="result in main.results track by $index">
-        <h4>{{ ::result.sourceauthor }}, <i>{{ ::result.sourcetitle }}</i> [{{ ::result.sourcedate }}]</h4>
+        <h4><b>{{ ($index + 1) + (25 * (main.currentPageNumber-1)) }}. </b>{{ ::result.sourceauthor }}, <i>{{ ::result.sourcetitle }}</i> [{{ ::result.sourcedate }}]</h4>
         <h5>{{ ::result.number_of_matches }} matching <span ng-pluralize count="result.number_of_matches" when="{'one': 'passage', 'other': 'passages'}"></span></h5>
         <p ng-bind-html="result.sourcematchcontext | unsafe"></p>
         <ol>
           <li ng-repeat="target in result.target_alignment track by $index">
-            <b>{{ :: target.sourceauthor }}, <i>{{ ::target.sourcetitle }}</i> [{{ ::target.sourcedate }}]</b>
+            <h5><b>{{ ::target.sourceauthor }}, <i>{{ ::target.sourcetitle }}</i> [{{ ::target.sourcedate }}]</b></h5>
             <p ng-bind-html="target.sourcematchcontext | unsafe"></p>
+            <h6>Matching n-grams: {{ ::target.matching_ngrams }}</h6>
           </li>
         </ol>
       </div>
+      <nav style="text-align:center">
+        <ul class="pagination">
+          <li>
+            <a href="" aria-label="Previous" ng-if="(main.currentPageNumber-1) > 0" ng-click="main.goToPage(main.currentPageNumber-1)">
+              <span aria-hidden="true">&laquo;</span>
+            </a>
+          </li>
+          <!--<li ng-if="(main.currentPageNumber-2) > 0"><a href="#">{{ main.currentPageNumber-2 }}</a></li>-->
+          <!--<li ng-if="(main.currentPageNumber-1) > 0"><a href="#">{{ main.currentPageNumber-1 }}</a></li>-->
+          <!--<li><a href="#">{{ main.currentPageNumber }}</a></li>-->
+          <!--<li><a href="#">{{ main.currentPageNumber+1 }}</a></li>-->
+          <!--<li><a href="#">{{ main.currentPageNumber+2 }}</a></li>-->
+          <li>
+            <a href="" aria-label="Next" ng-click="main.goToPage(main.currentPageNumber+1)">
+              <span aria-hidden="true">&raquo;</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
     </div>
     
   </div>

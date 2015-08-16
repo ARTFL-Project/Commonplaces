@@ -1,4 +1,5 @@
-.btn, .panel, .panel-heading, .list-group-item:first-child, .list-group-item:last-child, .popover, .progress, .form-control, .tooltip-inner, .modal-content {
+.btn, .panel, .panel-heading, .list-group-item:first-child, .list-group-item:last-child,
+.popover, .progress, .form-control, .tooltip-inner, .modal-content, .pagination a {
     border-radius: 0px !important;
 }
 body {
@@ -24,6 +25,10 @@ body {
 }
 .highlight {
 	color: rgb(174, 89, 80);
+}
+
+body {
+	font-family: 'Roboto', sans-serif;
 }
 
 /* Button colors */
