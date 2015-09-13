@@ -1,14 +1,14 @@
-process.env.NODE_ENV = process.env.NODE_ENV || 'development';
+/*eslint-env node, mocha */
 
-var config = require('./config/config'),
-    mongoose = require('./config/mongoose'),
-    express = require('./config/express');
+"use strict";
 
-var db = mongoose(),
-    app = express();
+process.env.NODE_ENV = process.env.NODE_ENV || "development";
+
+var config = require("./config/config"),
+    express = require("./config/express");
+
+var app = express();
 
 app.listen(config.port);
 
-module.exports = app;
-exports.db = db;
-console.log(process.env.NODE_ENV  + ' server running at http://localhost:' + config.port);
+console.log(process.env.NODE_ENV + " server running at http://localhost:" + config.port);

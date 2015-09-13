@@ -1,0 +1,20 @@
+<div id="unique-authors">
+	<h5>{{ mainResults.results.passageList.length }} unique authors found...</h5>
+	<span us-spinner="{radius:25, width:4, length: 16, scale: 0.75, speed: 1.5, fps: 30, top: '35%', color: ['#5B96AD', '#155F83', '#15435F']}" spinner-key="spinner-1"></span>
+	<div class="panel panel-default result" ng-repeat="result in mainResults.results.passageList track by $index">
+		<h5>{{ ::$index + 1}}.&nbsp;<b>{{ ::result.author }}</b>, <i>{{ ::result.title }}</i>&nbsp;<b>[{{ ::result.date }}]</b></h5>
+		<p>
+			{{ ::result.leftContext }}
+			<span class="highlight">
+				{{ ::result.matchContext }}
+			</span>
+			{{ ::result.rightContext}}
+		</p>
+		<h5 ng-if="result.otherTitles | isNotEmpty">
+			<a href="" ng-click="getTitles($event,result.author, result.title)">
+				<span class="glyphicon glyphicon-chevron-right"></span>&nbsp;{{ result.otherTitles | keyLength }} later reference(s) by this author:
+			</a>
+		</h5>
+		<div class="title-list" style="margin: 15px"></div>
+	</div>
+</div>

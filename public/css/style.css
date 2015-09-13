@@ -2,9 +2,16 @@
 .popover, .progress, .form-control, .tooltip-inner, .modal-content, .pagination a {
     border-radius: 0px !important;
 }
+.btn:focus {
+    outline: none !important;
+}
+.btn-default:focus {
+    background-color: #fff;
+}
 body {
 	color: rgb(61, 61, 61);
-	background-color: rgb(21, 95, 131);
+	background-color: #5B8FA8;
+    font-family: 'Roboto', sans-serif;
 }
 
 /* Navbar colors */
@@ -27,25 +34,25 @@ body {
 	color: rgb(174, 89, 80);
 }
 
-body {
-	font-family: 'Roboto', sans-serif;
-}
-
 /* Button colors */
 .btn-primary {
     background: rgb(21, 95, 131);
     transition: background-color 200ms;
 	border-color: transparent;
 }
-.btn-primary:hover, .btn-primary:focus {
+.btn-primary:hover {
     background: rgba(21, 95, 131, .8);
 	border-color: transparent;
-	outline: 0;
+}
+.btn-primary:focus {
+    background-color: rgb(21, 95, 131);
+    border-color: transparent;
 }
 .btn-primary.active, .open>.dropdown-toggle.btn-primary, #collocation_table th {
     background: rgb(21, 67, 95);
 	border-color: transparent;
 	color: #fff;
+    box-shadow: 1px 1px 5px #555 inset;
 }
 .btn-primary[disabled] {
 	background-color: rgb(91, 150, 173);
@@ -70,7 +77,73 @@ a:hover {
 .search-field {
 	padding: 10px;
 }
-#results, .result {
+.result {
 	margin-top: 20px;
 	padding: 20px;
+}
+#results > .btn-group button {
+    border-bottom: 0px;
+}
+#main-passage {
+    padding: 15px;
+    text-align: center;
+    font-size: 1.3em;
+}
+#unique-authors {
+    background-color: rgb(21, 95, 131);
+}
+#timeline-view {
+    background-color: rgb(21, 95, 131);
+    color: #fff;
+}
+#unique-authors, #unique-titles {
+	padding: 15px;
+}
+#timeline-container {
+    position: relative;
+    text-align: center;
+    padding: 50px 10px 30px 10px;
+}
+#timeline-container::after {
+    content:"";
+    position: absolute;
+    top: 20px;
+    bottom: 0;
+    left: 50%;
+    border-left: 2px dotted rgba(236, 236, 236, .5);
+}
+#timeline-container a {
+    color: #fff;
+}
+.timeline-dates {
+    padding-bottom: 30px;
+    width: 80%;
+    margin-left: 10%;
+}
+.timeline-events {
+    position: relative;
+    background-color: rgb(21, 95, 131);
+    text-align: center;
+}
+.event-link {
+    padding: 10px;
+    font-size: 1.1em;
+}
+.timeline-text-content {
+    display: none;
+    width: 70%;
+    margin-left: 15%;
+    overflow: hidden;
+    text-align: justify;
+    position: relative;
+    padding: 10px;
+    color: #000;
+    opacity: 0;
+    box-shadow: 1px 1px 5px #555 inset;
+}
+#timeline-container a:hover {
+    color: #B1746F !important;
+}
+#timeline-container a:hover, #timeline-container a:focus {
+    text-decoration: none !important
 }

@@ -1,0 +1,16 @@
+<div id="results" class="panel panel-default" ng-class="{'timeline-color': mainResults.resultsView === 'timeline'}">
+  <div id="main-passage">
+    <i>"{{ mainResults.results.passageList[0].matchContext }}"</i><br>
+    {{ mainResults.results.passageList[0].author }}
+  </div>
+	<div class="btn-group btn-group-justified" role="group" aria-label="...">
+		<div class="btn-group" role="group">
+			<button type="button" class="btn btn-primary" ng-class="{'active': mainResults.resultsView !== 'uniqueAuthors'}" ng-click="mainResults.switchView('uniqueAuthors')">Authors Who Use It...</button>
+		</div>
+		<div class="btn-group" role="group">
+			<button type="button" class="btn btn-primary" ng-class="{'active': mainResults.resultsView !== 'timeline'}" ng-click="mainResults.switchView('timeline')">Use Throughout The Century</button>
+		</div>
+	</div>
+	<unique-authors ng-if="mainResults.resultsView === 'uniqueAuthors'"></unique-authors>
+	<timeline ng-if= "mainResults.resultsView === 'timeline'"></timeline>
+</div>

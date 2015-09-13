@@ -13,6 +13,6 @@ var mergeAlignment = new Schema({
     _id: {type: Schema.Types.ObjectId}}
 });
 
-mongoose.model('merged_alignment', mergeAlignment);
-mongoose.model('mergedNoFilter', mergeAlignment);
-mongoose.model('merged_trigrams_two', mergeAlignment);
+mongoose.model('three_bigram', mergeAlignment);
+mongoose.model('three_trigram', mergeAlignment);
+mongoose.model('two_trigram', mergeAlignment);

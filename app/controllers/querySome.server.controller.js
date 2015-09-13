@@ -1,42 +1,106 @@
-var mergedAlignement = require('mongoose');
+/*eslint-env node, mocha */
+
+"use strict";
 
 exports.some = function(req, res, next) {
-	if (req.query.model === 'mergedNoFilter') {
-		var db = mergedAlignement.model('mergedNoFilter');
-	} else if (req.query.model === 'merged_trigrams_two') {
-		var db = mergedAlignement.model('merged_trigrams_two');
-	} else {
-		var db = mergedAlignement.model('merged_alignment');
-	}
-	var queryParams = {}
-	for (var i in req.query) {
-		if (req.query[i] && i !== 'model' && i !== 'page') {
-            queryParams[i] = new RegExp(req.query[i], 'i');
+    var db = req.db,
+    queryFields = [],
+    queryValues = [];
+    for (var i in req.query) {
+        if (req.query[i] && i !== "passageident") {
+            queryFields.push(i + " regexp ?");
+            queryValues.push(req.query[i]);
+        } else if (req.query[i] && i === "passageident") {
+            queryFields.push(i + "=?");
+            queryValues.push(req.query[i]);
         }
-	}
-	console.log(queryParams)
-	var getCount = db.find(queryParams).count();
-	getCount.exec(function(countErr, count) {
-		if (countErr) {
-			console.log(countErr)
-            return next(countErr);
-		} else {
-			if (req.query.page == 1) {
-				var q = db.find(queryParams).limit(25);
-			} else {
-				var skipping = 25 * parseInt(req.query.page) || 25;
-				console.log(skipping)
-				var q = db.find(queryParams).skip(skipping).limit(25);
-			}
-			q.exec(function(err, docs) {
-				if (err) {
-					console.log(err)
-					return next(err);
-				}
-				else {
-					res.json({results: docs, count: count})
-				}
-			});
-		}
-	});
+    }
+    var myquery = "select * from commonlitlangext where " + queryFields.join(" and ");
+
+    db.getConnection(function(err, connection) {
+        if (err) {
+            return next(err);
+        }
+        var filteredAuthors = {};
+        var filteredTitles = {};
+        var query = connection.query( myquery, queryValues);
+        console.log(query.sql);
+        query.on("error", function(queryErr) {
+            return next(queryErr);
+        });
+        query.on("field", function(field) {
+            console.log(field);
+        });
+        query.on("result", function(row) {
+            var sourceObject = {};
+            sourceObject.author = row.sourceauthor;
+            sourceObject.title = row.sourcetitle;
+            sourceObject.date = row.sourcedate;
+            sourceObject.leftContext = row.sourceleftcontext;
+            sourceObject.matchContext = row.sourcematchcontext;
+            sourceObject.rightContext = row.sourcerightcontext;
+            sourceObject.contextLink = row.sourcecontextlink;
+            sourceObject.passageId = row.passageident;
+            if (!(sourceObject.author in filteredAuthors)) {
+                filteredAuthors[sourceObject.author] = sourceObject;
+                filteredAuthors[sourceObject.author].otherTitles = {};
+            } else if (sourceObject.author in filteredAuthors) {
+                if (filteredAuthors[sourceObject.author].date > sourceObject.date) {
+                    sourceObject.otherTitles = filteredAuthors[sourceObject.author].otherTitles;
+                    filteredAuthors[sourceObject.author] = sourceObject;
+                }
+                if (filteredAuthors[sourceObject.author].date !== sourceObject.date) {
+                    filteredAuthors[sourceObject.author].otherTitles[sourceObject.title] = 1;
+                }
+            }
+            if (!(sourceObject.title in filteredTitles) || filteredTitles[sourceObject.title].date > sourceObject.date) {
+                filteredTitles[sourceObject.title] = sourceObject;
+            }
+            var targetObject = {};
+            targetObject.author = row.targetauthor;
+            targetObject.title = row.targettitle;
+            targetObject.date = row.targetdate;
+            targetObject.leftContext = row.targetleftcontext;
+            targetObject.matchContext = row.targetmatchcontext;
+            targetObject.rightContext = row.targetrightcontext;
+            targetObject.contextLink = row.targetcontextlink;
+            targetObject.passageId = row.passageident;
+            if (!(targetObject.author in filteredAuthors)) {
+                filteredAuthors[targetObject.author] = targetObject;
+                filteredAuthors[targetObject.author].otherTitles = {};
+            } else if (targetObject.author in filteredAuthors) {
+                if (filteredAuthors[targetObject.author].date > targetObject.date) {
+                    targetObject.otherTitles = filteredAuthors[targetObject.author].otherTitles
+                    filteredAuthors[targetObject.author] = targetObject;
+                }
+                if (filteredAuthors[targetObject.author].date !== targetObject.date) {
+                    if (typeof(filteredAuthors[targetObject.author].otherTitles) !== 'undefined') {
+                        filteredAuthors[targetObject.author].otherTitles[targetObject.author] = 1;
+                    }
+                }
+            }
+            if (!(targetObject.title in filteredTitles) || filteredTitles[targetObject.title].date > targetObject.date) {
+                filteredTitles[targetObject.title] = targetObject;
+            }
+        });
+        query.on("end", function() {
+            var passageList = Object.keys(filteredAuthors).map(function (key) { return filteredAuthors[key]; });
+            passageList.sort(function(a, b) {
+                var x = a.date;
+                var y = b.date;
+                return ((x < y) ? -1 : ((x > y) ? 1 : 0));
+            });
+            var titleList = Object.keys(filteredTitles).map(function (key) { return filteredTitles[key]; });
+            titleList.sort(function(a, b) {
+                var x = a.date;
+                var y = b.date;
+                return ((x < y) ? -1 : ((x > y) ? 1 : 0));
+            });
+            res.json({
+                passageList: passageList,
+                titleList: titleList
+                });
+        });
+        connection.release();
+    });
 };

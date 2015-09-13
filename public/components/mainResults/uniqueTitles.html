@@ -1,0 +1,14 @@
+<div id="unique-titles">
+	<h5>{{ mainResults.results.titleList.length }} unique titles found...</h5>
+	<span us-spinner="{radius:25, width:4, length: 16, scale: 0.75, speed: 1.5, fps: 30, top: '35%', color: ['#5B96AD', '#155F83', '#15435F']}" spinner-key="spinner-1"></span>
+	<div class="panel panel-default result" ng-repeat="result in mainResults.results.titleList track by $index">
+		<h5>{{ ::$index + 1}}.&nbsp;<b>{{ ::result.author }}</b>, <i>{{ ::result.title }}</i>&nbsp;<b>[{{ ::result.date }}]</b></h5>
+		<p>
+			{{ ::result.leftContext }}
+			<span class="highlight">
+				{{ ::result.matchContext }}
+			</span>
+			{{ ::result.rightContext}}
+		</p>
+	</div>
+</div>
