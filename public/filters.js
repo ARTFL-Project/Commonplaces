@@ -6,7 +6,6 @@
 		.filter('unsafe', function($sce) { return $sce.trustAsHtml; })
 		.filter('isNotEmpty', function($log) {
 			return function(obj) {
-				$log.debug(obj, angular.element.isEmptyObject(obj));
 				if (angular.element.isEmptyObject(obj)) {
 					return false;
 				} else {

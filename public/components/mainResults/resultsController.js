@@ -9,7 +9,6 @@
 	function ResultsController($http, $location, $anchorScroll, $timeout, URL, usSpinnerService) {
 		var vm = this;
 		vm.formData = $location.search();
-		vm.resultsView = "uniqueAuthors";
 
 		getData();
 
@@ -44,6 +43,7 @@
                     vm.timeline = [];
 					vm.count = response.data.length;
 					usSpinnerService.stop('spinner-1');
+                    vm.resultsView = "timeline";
 				});
 			}
 		}

@@ -1,0 +1,21 @@
+{
+  "name": "public",
+  "version": "0.0.0",
+  "homepage": "https://github.com/ARTFL-Project/Commonplaces",
+  "authors": [
+    "Clovis <clovisgladstone@gmail.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular-spinner": "git://github.com/urish/angular-spinner.git#~0.6.2",
+    "ngInfiniteScroll": "1.0.0",
+    "timesheet.js": "https://github.com/sbstjn/timesheet.js.git"
+  }
+}

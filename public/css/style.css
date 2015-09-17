@@ -1,149 +1,267 @@
-.btn, .panel, .panel-heading, .list-group-item:first-child, .list-group-item:last-child,
-.popover, .progress, .form-control, .tooltip-inner, .modal-content, .pagination a {
-    border-radius: 0px !important;
+.btn, .panel, .panel-heading, .list-group-item:first-child, .list-group-item:last-child, .popover, .progress, .form-control, .tooltip-inner, .modal-content, .pagination a {
+  border-radius: 0 !important;
 }
 .btn:focus {
-    outline: none !important;
+  outline: none !important;
 }
 .btn-default:focus {
-    background-color: #fff;
+  background-color: #fff;
 }
 body {
-	color: rgb(61, 61, 61);
-	background-color: #5B8FA8;
-    font-family: 'Roboto', sans-serif;
+  color: rgb(61, 61, 61);
+  background-color: #5B8FA8;
+  font-family: 'Roboto', sans-serif;
 }
 
 /* Navbar colors */
+
 .navbar-inverse, .panel-default > .panel-heading {
-    background:rgb(21, 67, 95) !important;
+  background: rgb(21, 67, 95) !important;
 }
 .navbar-brand:hover, .navbar-inverse .navbar-nav>li>a:hover, .panel-default > .panel-heading {
-    color: #fff !important;
+  color: #fff !important;
 }
 .navbar {
-    box-shadow: 0px .2em 8px .01em rgba(0,0,0,0.2);
+  box-shadow: 0 .2em 8px .01em rgba(0, 0, 0, 0.2);
 }
 .navbar-brand, .navbar-inverse a {
-    color: rgb(236,237,238) !important;
+  color: rgb(236, 237, 238) !important;
 }
 .navbar-right a:hover {
-	color: #fff !important;
+  color: #fff !important;
 }
 .highlight {
-	color: rgb(174, 89, 80);
+  color: rgb(174, 89, 80);
 }
 
 /* Button colors */
+
 .btn-primary {
-    background: rgb(21, 95, 131);
-    transition: background-color 200ms;
-	border-color: transparent;
+  background: rgb(21, 95, 131);
+  transition: background-color 200ms;
+  border-color: transparent;
 }
 .btn-primary:hover {
-    background: rgba(21, 95, 131, .8);
-	border-color: transparent;
+  background: rgba(21, 95, 131, .8);
+  border-color: transparent;
 }
 .btn-primary:focus {
-    background-color: rgb(21, 95, 131);
-    border-color: transparent;
+  background-color: rgb(21, 95, 131);
+  border-color: transparent;
 }
 .btn-primary.active, .open>.dropdown-toggle.btn-primary, #collocation_table th {
-    background: rgb(21, 67, 95);
-	border-color: transparent;
-	color: #fff;
-    box-shadow: 1px 1px 5px #555 inset;
+  background: rgb(21, 67, 95);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 1px 1px 5px #555 inset;
 }
 .btn-primary[disabled] {
-	background-color: rgb(91, 150, 173);
-	border-color: transparent;
+  background-color: rgb(91, 150, 173);
+  border-color: transparent;
+}
+
+/* ANIMATIONS
+============================================================================= */
+
+
+/* leaving animations ----------------------------------------- */
+
+
+/* rotate and fall */
+
+@keyframes rotateFall {
+  0% {
+    transform: rotateZ(0deg);
+  }
+  20% {
+    transform: rotateZ(10deg);
+    animation-timing-function: ease-out;
+  }
+  40% {
+    transform: rotateZ(17deg);
+  }
+  60% {
+    transform: rotateZ(16deg);
+  }
+  100% {
+    transform: translateY(100%) rotateZ(17deg);
+  }
+}
+
+/* slide in from the bottom */
+
+@keyframes slideOutLeft {
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+/* rotate out newspaper */
+
+@keyframes rotateOutNewspaper {
+  to {
+    transform: translateZ(-3000px) rotateZ(360deg);
+    opacity: 0;
+  }
+}
+
+/* entering animations --------------------------------------- */
+
+
+/* scale up */
+
+@keyframes scaleUp {
+  from {
+    opacity: 0.3;
+    -webkit-transform: scale(0.8);
+  }
+}
+
+/* slide in from the right */
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* slide in from the bottom */
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+.ng-enter {
+  animation: scaleInUp 1s both ease-in;
+  z-index: 8888;
+}
+.ng-leave {
+  animation: slideOutLeft 0.5s both ease-in;
+  z-index: 9999;
+}
+.animate.ng-enter, .animate.ng-leave {
+  transition: 1s linear all;
+}
+.animate.ng-enter {
+  opacity: 0;
+}
+.animate.ng-enter.ng-enter-active {
+  opacity: 1;
+}
+.animate.ng-leave {
+  opacity: 1;
+}
+.animate.ng-leave.ng-leave-active {
+  opacity: 0;
 }
 
 /* Links */
+
 a {
-    color: rgb(21, 95, 131);
-	font-weight: 400;
-	transition: all 200ms;
+  color: rgb(21, 95, 131);
+  font-weight: 400;
+  transition: all 200ms;
 }
 a:hover {
-    color: rgb(128,0,0) !important;
-	text-decoration: none;
+  color: rgb(128, 0, 0) !important;
+  text-decoration: none;
 }
-
 #search-form {
-	margin-top: 20px;
-	padding: 10px;
+  margin-top: 20px;
+  padding: 10px;
+  left: 15px;
+  right: 15px;
+  position: absolute;
+  transition: all ease-in-out 300ms;
+  z-index: 10;
 }
-.search-field {
-	padding: 10px;
+#search-form.up {
+  transform: translateY(-170px);
+}
+.search-field, #show-form {
+  padding: 10px;
+}
+#results {
+  margin-top: 80px;
+  transition: all ease-out 300ms;
+}
+#results.down {
+  transform: translateY(170px);
 }
 .result {
-	margin-top: 20px;
-	padding: 20px;
+  margin-top: 20px;
+  padding: 20px;
 }
 #results > .btn-group button {
-    border-bottom: 0px;
+  border-bottom: 0px;
 }
 #main-passage {
-    padding: 15px;
-    text-align: center;
-    font-size: 1.3em;
+  padding: 15px;
+  text-align: center;
+  font-size: 1.3em;
 }
 #unique-authors {
-    background-color: rgb(21, 95, 131);
+  background-color: rgb(21, 95, 131);
 }
 #timeline-view {
-    background-color: rgb(21, 95, 131);
-    color: #fff;
+  background-color: rgb(21, 95, 131);
+  color: #fff;
 }
-#unique-authors, #unique-titles {
-	padding: 15px;
+#unique-authors {
+  padding: 15px;
 }
 #timeline-container {
-    position: relative;
-    text-align: center;
-    padding: 50px 10px 30px 10px;
+  position: relative;
+  text-align: center;
+  padding: 50px 10px 30px 10px;
 }
 #timeline-container::after {
-    content:"";
-    position: absolute;
-    top: 20px;
-    bottom: 0;
-    left: 50%;
-    border-left: 2px dotted rgba(236, 236, 236, .5);
+  content: "";
+  position: absolute;
+  top: 20px;
+  bottom: 0;
+  left: 50%;
+  border-left: 2px dotted rgba(236, 236, 236, .5);
 }
 #timeline-container a {
-    color: #fff;
+  color: #fff;
 }
 .timeline-dates {
-    padding-bottom: 30px;
-    width: 80%;
-    margin-left: 10%;
+  padding-bottom: 30px;
+  width: 80%;
+  margin-left: 10%;
 }
 .timeline-events {
-    position: relative;
-    background-color: rgb(21, 95, 131);
-    text-align: center;
+  position: relative;
+  background-color: rgb(21, 95, 131);
+  text-align: center;
 }
 .event-link {
-    padding: 10px;
-    font-size: 1.1em;
+  padding: 10px;
+  font-size: 1.1em;
 }
 .timeline-text-content {
-    display: none;
-    width: 70%;
-    margin-left: 15%;
-    overflow: hidden;
-    text-align: justify;
-    position: relative;
-    padding: 10px;
-    color: #000;
-    opacity: 0;
-    box-shadow: 1px 1px 5px #555 inset;
+  display: none;
+  width: 70%;
+  margin-left: 15%;
+  overflow: hidden;
+  text-align: justify;
+  position: relative;
+  padding: 10px;
+  color: #000;
+  opacity: 0;
+  box-shadow: 1px 1px 5px #555 inset;
 }
 #timeline-container a:hover {
-    color: #B1746F !important;
+  color: #B1746F !important;
 }
 #timeline-container a:hover, #timeline-container a:focus {
-    text-decoration: none !important
+  text-decoration: none !important
 }

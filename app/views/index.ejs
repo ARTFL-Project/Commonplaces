@@ -12,7 +12,7 @@
   <div class="container-fluid" ng-controller="MainController as main">
 
     <!--Search form-->
-    <form id="search-form" class="panel panel-default" ng-submit="main.submit()">
+    <form id="search-form" class="panel panel-default" ng-submit="main.submit()" ng-class="{'up': main.hideForm}">
       <img src="img/logo.png" alt="Digging Into Data logo" style="width: 55px; height: 30px">
       <div class="row">
         <div class="col-xs-12 col-sm-6">
@@ -55,8 +55,13 @@
              </div>
           </div>
         </div>
-        <div class="col-xs-12 col-sm-offset-6 col-sm-6">
-          <div class="search-field">
+        <div class="col-xs-12 col-sm-6">
+          <div id="show-form">
+            <span class="btn btn-primary pull-left" ng-click="main.toggleForm()">{{ main.formToggleText }}</span>
+          </div>
+        </div>
+        <div class="col-xs-12 col-sm-6">
+          <div class="search-field" ng-if="!main.hideForm">
             <button type="submit" class="btn btn-primary pull-right">Search</button>
           </div>
         </div>
@@ -83,6 +88,7 @@
   <script src="bower_components/angular-spinner/angular-spinner.js"></script>
   <script src="//cdn.jsdelivr.net/velocity/1.2.2/velocity.min.js"></script>
   <script src="//cdn.jsdelivr.net/velocity/1.2.2/velocity.ui.min.js"></script>
+  <script src="bower_components/ngInfiniteScroll/build/ng-infinite-scroll.min.js"></script>
   <script src="app.js"></script>
   <script src="services.js"></script>
   <script src="filters.js"></script>
