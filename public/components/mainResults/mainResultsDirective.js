@@ -13,7 +13,6 @@
                 scope.displayLimit = 20;
                 scope.addMoreAuthors = function() {
                     scope.displayLimit += 20;
-                    $log.debug(scope.displayLimit)
                 }
                 scope.getTitles = function($event, author, title) {
                     // $log.debug(author);
@@ -75,7 +74,6 @@
                 scope.displayLimit = 5;
                 scope.addMoreItems = function() {
                     scope.displayLimit += 5;
-                    $log.debug(scope.displayLimit)
                 }
                 scope.getCurrentPassage = function(event) {
                     var passageElement = angular.element(event.currentTarget).next('p');

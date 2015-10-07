@@ -123,12 +123,15 @@ function postgres(req, res, next) {
         queryValues = [],
         count = 1;
     for (var i in req.query) {
-        if (req.query[i] && i !== "passageident") {
+        if (req.query[i] && i !== "passageident" && i !== "sourcedate" && i !== "sourcetitle") {
             queryFields.push(i + " regexp ");
             queryValues.push(req.query[i]);
         } else if (req.query[i] && i === "passageident") {
             queryFields.push(i + "=$" + count);
             queryValues.push(req.query[i]);
+        } else if (req.query[i] && i === "sourcetitle") {
+            var words = req.query[i].split(' ').join(' | ')
+            queryFields.push("title_tsv @@ to_tsquery('" + words + "')");
         }
         count += 1;
     }

@@ -173,23 +173,33 @@ a:hover {
   color: rgb(128, 0, 0) !important;
   text-decoration: none;
 }
+
+
+/*Search form*/
 #search-form {
   margin-top: 20px;
   padding: 10px;
   left: 15px;
   right: 15px;
-  position: absolute;
   transition: all ease-in-out 300ms;
   z-index: 10;
 }
 #search-form.up {
   transform: translateY(-170px);
 }
+#search-form img {
+  width: 55px;
+  height: 30px;
+  position: absolute;
+  transition: all ease-in-out 300ms;
+}
 .search-field, #show-form {
   padding: 10px;
 }
+
+
+
 #results {
-  margin-top: 80px;
   transition: all ease-out 300ms;
 }
 #results.down {
@@ -202,6 +212,8 @@ a:hover {
 #results > .btn-group button {
   border-bottom: 0px;
 }
+
+
 #main-passage {
   padding: 15px;
   text-align: center;
@@ -210,6 +222,25 @@ a:hover {
 #unique-authors {
   background-color: rgb(21, 95, 131);
 }
+#landing-page-container {
+  left: 15px;
+  right: 15px;
+  transition: all ease-in-out 300ms;
+  z-index: 10;
+}
+#landing-page-container > .panel {
+  padding: 20px;
+}
+#landing-page-container ul {
+  list-style-type: none;
+}
+#landing-page-container li {
+  margin-left: -30px;
+  padding: 5px;
+}
+
+/*Timeline styling*/
+
 #timeline-view {
   background-color: rgb(21, 95, 131);
   color: #fff;

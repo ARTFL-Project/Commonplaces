@@ -10,65 +10,7 @@
 
 <body>
   <div class="container-fluid" ng-controller="MainController as main">
-
-    <!--Search form-->
-    <form id="search-form" class="panel panel-default" ng-submit="main.submit()" ng-class="{'up': main.hideForm}">
-      <img src="img/logo.png" alt="Digging Into Data logo" style="width: 55px; height: 30px">
-      <div class="row">
-        <div class="col-xs-12 col-sm-6">
-          <div class="row search-field">
-            <div class="col-xs-12 col-sm-2">
-                Author:
-             </div>
-             <div class="col-xs-12 col-sm-10">
-               <input type="text" class="form-control" ng-model="main.formData.sourceauthor">
-             </div>
-          </div>
-        </div>
-        <div class="col-xs-12 col-sm-6">
-          <div class="row search-field">
-            <div class="col-xs-12 col-sm-2">
-                Title:
-             </div>
-             <div class="col-xs-12 col-sm-10">
-               <input type="text" class="form-control" ng-model="main.formData.sourcetitle">
-             </div>
-          </div>
-        </div>
-        <div class="col-xs-12 col-sm-6">
-          <div class="row search-field">
-            <div class="col-xs-12 col-sm-2">
-                Date:
-             </div>
-             <div class="col-xs-12 col-sm-10">
-               <input type="text" class="form-control" ng-model="main.formData.sourcedate">
-             </div>
-          </div>
-        </div>
-        <div class="col-xs-12 col-sm-6">
-          <div class="row search-field">
-            <div class="col-xs-12 col-sm-2">
-                Passage ID:
-             </div>
-             <div class="col-xs-12 col-sm-10">
-               <input type="text" class="form-control" ng-model="main.formData.passageident">
-             </div>
-          </div>
-        </div>
-        <div class="col-xs-12 col-sm-6">
-          <div id="show-form">
-            <span class="btn btn-primary pull-left" ng-click="main.toggleForm()">{{ main.formToggleText }}</span>
-          </div>
-        </div>
-        <div class="col-xs-12 col-sm-6">
-          <div class="search-field" ng-if="!main.hideForm">
-            <button type="submit" class="btn btn-primary pull-right">Search</button>
-          </div>
-        </div>
-      </div>
-    </form>
-    <!--End of search form-->
-
+    <landing-page></landing-page>
     <div ng-view></div>
 
   </div>
@@ -95,5 +37,7 @@
   <script src="digging.routes.js"></script>
   <script src="components/mainResults/resultsController.js"></script>
   <script src="components/mainResults/mainResultsDirective.js"></script>
+  <script src="components/landingPage/landingPageDirective.js"></script>
+  <script src="components/searchForm/searchFormDirective.js"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-var pg = require('pg').native;
+var pg = require('pg');
 var conString = "postgres://postgres:***REMOVED***@localhost/philologic";
 
 exports.connect = function(callback) {

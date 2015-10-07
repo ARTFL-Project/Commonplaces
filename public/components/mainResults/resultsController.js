@@ -43,7 +43,7 @@
                     vm.timeline = [];
 					vm.count = response.data.length;
 					usSpinnerService.stop('spinner-1');
-                    vm.resultsView = "timeline";
+                    vm.resultsView = "uniqueAuthors";
 				});
 			}
 		}
