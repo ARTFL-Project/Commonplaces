@@ -28,24 +28,14 @@
 			$timeout(function() {
 				usSpinnerService.spin('spinner-1');
 			});
-			if (angular.equals({}, vm.formData)) {
-	            $http.get('DiggingIntoData/all').then(function(response) {
-					vm.results = response.data;
-					usSpinnerService.stop('spinner-1');
-				});
-	        } else {
-				if (typeof(vm.formData.page) === 'undefined') {
-	                //vm.formData.page = 1;
-	            }
-				var urlString = URL.objectToString(vm.formData);
-				$http.get('DiggingIntoData/some?' + urlString).then(function(response) {
-					vm.results = response.data;
-                    vm.timeline = [];
-					vm.count = response.data.length;
-					usSpinnerService.stop('spinner-1');
-                    vm.resultsView = "uniqueAuthors";
-				});
-			}
+			var urlString = URL.objectToString(vm.formData);
+			$http.get('DiggingIntoData/commonplaces?' + urlString).then(function(response) {
+				vm.results = response.data;
+                vm.timeline = [];
+				vm.count = response.data.length;
+				usSpinnerService.stop('spinner-1');
+                vm.resultsView = "timeline";
+			});
 		}
 	};
 }) ();

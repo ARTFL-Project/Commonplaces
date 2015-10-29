@@ -9,5 +9,6 @@
             var vm = this;
 
             vm.hideLanding = true;
+            vm.landingPage = true;
 		}
 })();

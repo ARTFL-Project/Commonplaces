@@ -5,11 +5,11 @@
   outline: none !important;
 }
 .btn-default:focus {
-  background-color: #fff;
+  background-color: rgb(255, 255, 255);
 }
 body {
   color: rgb(61, 61, 61);
-  background-color: #5B8FA8;
+  background-color: rgb(91, 143, 168);
   font-family: 'Roboto', sans-serif;
 }
 
@@ -19,7 +19,7 @@ body {
   background: rgb(21, 67, 95) !important;
 }
 .navbar-brand:hover, .navbar-inverse .navbar-nav>li>a:hover, .panel-default > .panel-heading {
-  color: #fff !important;
+  color: rgb(255, 255, 255) !important;
 }
 .navbar {
   box-shadow: 0 .2em 8px .01em rgba(0, 0, 0, 0.2);
@@ -52,114 +52,12 @@ body {
 .btn-primary.active, .open>.dropdown-toggle.btn-primary, #collocation_table th {
   background: rgb(21, 67, 95);
   border-color: transparent;
-  color: #fff;
+  color: rgb(255, 255, 255);
   box-shadow: 1px 1px 5px #555 inset;
 }
 .btn-primary[disabled] {
   background-color: rgb(91, 150, 173);
   border-color: transparent;
-}
-
-/* ANIMATIONS
-============================================================================= */
-
-
-/* leaving animations ----------------------------------------- */
-
-
-/* rotate and fall */
-
-@keyframes rotateFall {
-  0% {
-    transform: rotateZ(0deg);
-  }
-  20% {
-    transform: rotateZ(10deg);
-    animation-timing-function: ease-out;
-  }
-  40% {
-    transform: rotateZ(17deg);
-  }
-  60% {
-    transform: rotateZ(16deg);
-  }
-  100% {
-    transform: translateY(100%) rotateZ(17deg);
-  }
-}
-
-/* slide in from the bottom */
-
-@keyframes slideOutLeft {
-  to {
-    transform: translateX(-100%);
-  }
-}
-
-/* rotate out newspaper */
-
-@keyframes rotateOutNewspaper {
-  to {
-    transform: translateZ(-3000px) rotateZ(360deg);
-    opacity: 0;
-  }
-}
-
-/* entering animations --------------------------------------- */
-
-
-/* scale up */
-
-@keyframes scaleUp {
-  from {
-    opacity: 0.3;
-    -webkit-transform: scale(0.8);
-  }
-}
-
-/* slide in from the right */
-
-@keyframes slideInRight {
-  from {
-    transform: translateX(100%);
-  }
-  to {
-    transform: translateX(0);
-  }
-}
-
-/* slide in from the bottom */
-
-@keyframes slideInUp {
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
-.ng-enter {
-  animation: scaleInUp 1s both ease-in;
-  z-index: 8888;
-}
-.ng-leave {
-  animation: slideOutLeft 0.5s both ease-in;
-  z-index: 9999;
-}
-.animate.ng-enter, .animate.ng-leave {
-  transition: 1s linear all;
-}
-.animate.ng-enter {
-  opacity: 0;
-}
-.animate.ng-enter.ng-enter-active {
-  opacity: 1;
-}
-.animate.ng-leave {
-  opacity: 1;
-}
-.animate.ng-leave.ng-leave-active {
-  opacity: 0;
 }
 
 /* Links */
@@ -173,33 +71,35 @@ a:hover {
   color: rgb(128, 0, 0) !important;
   text-decoration: none;
 }
-
+#landing-page-container {
+  position: absolute;
+}
+#fulltext-search, #metadata-search, #section-container {
+  box-shadow: 1px 1px 5px #555;
+}
 
 /*Search form*/
-#search-form {
-  margin-top: 20px;
-  padding: 10px;
-  left: 15px;
-  right: 15px;
-  transition: all ease-in-out 300ms;
-  z-index: 10;
+
+form {
+  margin-top: 15px;
 }
-#search-form.up {
-  transform: translateY(-170px);
-}
-#search-form img {
+form img {
   width: 55px;
   height: 30px;
+  left: 15px;
+  top: 15px;
   position: absolute;
   transition: all ease-in-out 300ms;
 }
-.search-field, #show-form {
-  padding: 10px;
+form h4, #section-container h4 {
+  margin: 0 0 15px 0;
 }
-
-
-
+.search-field, #show-form {
+  padding-bottom: 10px;
+  padding-top: 10px;
+}
 #results {
+  margin-top: 110px;
   transition: all ease-out 300ms;
 }
 #results.down {
@@ -212,8 +112,6 @@ a:hover {
 #results > .btn-group button {
   border-bottom: 0px;
 }
-
-
 #main-passage {
   padding: 15px;
   text-align: center;
@@ -228,8 +126,8 @@ a:hover {
   transition: all ease-in-out 300ms;
   z-index: 10;
 }
-#landing-page-container > .panel {
-  padding: 20px;
+#landing-page-container .panel {
+  padding: 15px;
 }
 #landing-page-container ul {
   list-style-type: none;
@@ -243,7 +141,7 @@ a:hover {
 
 #timeline-view {
   background-color: rgb(21, 95, 131);
-  color: #fff;
+  color: rgb(255, 255, 255);
 }
 #unique-authors {
   padding: 15px;
@@ -262,7 +160,7 @@ a:hover {
   border-left: 2px dotted rgba(236, 236, 236, .5);
 }
 #timeline-container a {
-  color: #fff;
+  color: rgb(255, 255, 255);
 }
 .timeline-dates {
   padding-bottom: 30px;
@@ -286,12 +184,12 @@ a:hover {
   text-align: justify;
   position: relative;
   padding: 10px;
-  color: #000;
+  color: rgb(0, 0, 0);
   opacity: 0;
-  box-shadow: 1px 1px 5px #555 inset;
+  box-shadow: 1px 1px 5px rgb(85, 85, 85) inset;
 }
 #timeline-container a:hover {
-  color: #B1746F !important;
+  color: rgb(177, 116, 111) !important;
 }
 #timeline-container a:hover, #timeline-container a:focus {
   text-decoration: none !important

@@ -16,7 +16,7 @@
                 </span>
                 {{ ::result.rightContext}}
             </p>
-            <h5 ng-if="result.otherTitles | isNotEmpty">
+            <h5 ng-if="result.otherTitles">
                 <a href="" ng-click="getTitles($event,result.author, result.title)">
                     <span class="glyphicon glyphicon-chevron-right"></span>&nbsp;{{ result.otherTitles | keyLength }}
                     later reference(s) by this author:
