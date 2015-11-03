@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"net/url"
 	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -31,14 +30,14 @@ type results struct {
 }
 
 type metadataResultObject struct {
-	Author       string `json:"author"`
-	Title        string `json:"title"`
-	Date         int16  `json:"date"`
-	LeftContext  string `json:"leftContext"`
-	RightContext string `json:"rightContext"`
-	MatchContext string `json:"matchContext"`
-	ContextLink  string `json:"contextLink"`
-	PassageID    string `json:"passageID"`
+	Author       *string `json:"author"`
+	Title        *string `json:"title"`
+	Date         *int16  `json:"date"`
+	LeftContext  *string `json:"leftContext"`
+	RightContext *string `json:"rightContext"`
+	MatchContext *string `json:"matchContext"`
+	ContextLink  *string `json:"contextLink"`
+	PassageID    *string `json:"passageID"`
 }
 
 type metadataResults struct {
@@ -68,6 +67,12 @@ func (slice byDate) Swap(i, j int) {
 var defaultConnConfig pgx.ConnConfig
 var pool = createConnPool()
 
+var parameterMap = map[string]string{
+	"sourceauthor": "sourceauthor_fulltext",
+	"sourcetitle":  "sourcetitle_fulltext",
+	"matchcontext": "matchcontext_fulltext",
+}
+
 func createConnPool() *pgx.ConnPool {
 	defaultConnConfig.Host = "localhost"
 	defaultConnConfig.Database = "philologic"
@@ -82,7 +87,7 @@ func createConnPool() *pgx.ConnPool {
 }
 
 func findCommonPlaces(c *gin.Context) {
-	passageID := c.Query("passageident")
+	passageID := c.Param("passageID")
 	rows, err := pool.Query("select sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcecontextlink, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetcontextlink from eccotcpxallgale where passageident=$1", passageID)
 	if err != nil {
 		c.JSON(200, results{})
@@ -169,7 +174,7 @@ func findCommonPlaces(c *gin.Context) {
 	c.JSON(200, fullResults)
 }
 
-func metadataQuery(c *gin.Context) {
+func fullTextQuery(c *gin.Context) {
 	queryStringMap, _ := url.ParseQuery(c.Request.URL.RawQuery)
 	fmt.Println(queryStringMap)
 	query := "select sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcecontextlink, passageident from eccotcpxallgale where "
@@ -178,7 +183,14 @@ func metadataQuery(c *gin.Context) {
 	var values []interface{}
 	for param, v := range queryStringMap {
 		for _, value := range v {
-			params = append(params, param+" = $"+strconv.Itoa(count))
+			var paramValue string
+			if _, ok := parameterMap[param]; ok {
+				param = parameterMap[param]
+				paramValue = fmt.Sprintf("%s @@ to_tsquery('english', '%s')", param, value)
+			} else {
+				paramValue = fmt.Sprintf("%s='%s'", param, value)
+			}
+			params = append(params, paramValue)
 			values = append(values, value)
 			count++
 		}
@@ -186,7 +198,7 @@ func metadataQuery(c *gin.Context) {
 	query += strings.Join(params, " and ")
 	fmt.Printf("query is:%s\n", query)
 	fmt.Println(values)
-	rows, err := pool.Query(query, values...)
+	rows, err := pool.Query(query)
 	if err != nil {
 		var emptyResults []metadataResultObject
 		fmt.Println("query failed")
@@ -211,7 +223,7 @@ func metadataQuery(c *gin.Context) {
 			fmt.Println("retrieving results of query failed")
 			c.JSON(200, metadataResults{0, emptyResults})
 		}
-		sourceResults := metadataResultObject{author, title, date, leftContext, matchContext, rightContext, contextLink, passageID}
+		sourceResults := metadataResultObject{&author, &title, &date, &leftContext, &matchContext, &rightContext, &contextLink, &passageID}
 		results.MetadataList = append(results.MetadataList, sourceResults)
 	}
 	results.Count = len(results.MetadataList)
@@ -234,10 +246,11 @@ func main() {
 	router.Static("css", "./public/css")
 	// Routes
 	router.GET("/DiggingIntoData/", index)
+	router.GET("/DiggingIntoData/passage/:passageID", index)
 	router.GET("/DiggingIntoData/query", index)
-	router.GET("/DiggingIntoData/commonplaces", findCommonPlaces)
-
-	router.GET("/DiggingIntoData/metadata", metadataQuery)
+	// API calls
+	router.GET("/DiggingIntoData/api/commonplaces/:passageID", findCommonPlaces)
+	router.GET("/DiggingIntoData/api/fulltext", fullTextQuery)
 
 	router.Run(":3000")
 }

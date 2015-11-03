@@ -58,12 +58,6 @@
             templateUrl: 'components/searchForm/searchForm.html',
             link: function(scope) {
     			scope.formData = {};
-                if (angular.element.isEmptyObject($location.search())) {
-                    scope.formToggleText = 'Show Form';
-                } else {
-                    hideLandingPage()
-                    scope.formToggleText = 'Hide Form';
-                }
     			scope.submit = function() {
     				scope.results = [];
     				var urlString = URL.objectToString(scope.formData);
@@ -77,12 +71,17 @@
                 scope.toggleForm = function() {
                     if (scope.hideForm) {
                         angular.element('.hiding-element').velocity('slideDown');
-                        scope.formToggleText = 'Hide Form';
                     } else {
                         hideLandingPage();
-                        scope.formToggleText = 'Show Form';
                     }
                 }
+                scope.$watch("main.hideSearchForm", function(currentValue) {
+                    if (currentValue) {
+                        hideLandingPage()
+                    } else {
+
+                    }
+                })
             }
         }
     }

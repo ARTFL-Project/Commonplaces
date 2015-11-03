@@ -8,7 +8,7 @@
     function uniqueAuthors($http, $timeout, $log, URL) {
         return {
             restrict: 'E',
-            templateUrl: 'components/mainResults/uniqueAuthors.html',
+            templateUrl: 'components/passageResults/uniqueAuthors.html',
             link: function(scope, element, attrs) {
                 scope.displayLimit = 20;
                 scope.addMoreAuthors = function() {
@@ -17,7 +17,7 @@
                 scope.getTitles = function($event, author, title) {
                     // $log.debug(author);
                     var newElement = angular.element($event.currentTarget).parent().siblings('.title-list');
-                    var localParams = angular.copy(scope.mainResults.formData);
+                    var localParams = angular.copy(scope.passageResults.formData);
                     localParams.author = author;
                     localParams.not_title = title;
                     var urlString = URL.objectToString(localParams);
@@ -46,7 +46,7 @@
 
     function timeline($log) {
         var getTimeline = function(scope) {
-            var titleList = scope.mainResults.results.titleList;
+            var titleList = scope.passageResults.results.titleList;
             var dates = {};
             for (var i = 0; i < titleList.length; i += 1) {
                 var date = parseInt(titleList[i].date);
@@ -68,7 +68,7 @@
         }
         return {
             restrict: 'E',
-            templateUrl: 'components/mainResults/timeline.html',
+            templateUrl: 'components/passageResults/timeline.html',
             link: function(scope, element) {
                 scope.timeline = getTimeline(scope);
                 scope.displayLimit = 5;

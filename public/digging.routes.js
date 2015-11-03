@@ -7,10 +7,15 @@
 
 	function DiggingAppConfig($routeProvider, $locationProvider) {
 		$routeProvider.
+            when('/DiggingIntoData/passage/:passageID', {
+                templateUrl: 'components/passageResults/passageResults.html',
+				controller: 'PassageController',
+				controllerAs: 'passageResults'
+            }).
 			when('/DiggingIntoData/query?:queryArgs', {
-				templateUrl: 'components/mainResults/mainResults.html',
-				controller: 'ResultsController',
-				controllerAs: 'mainResults'
+				templateUrl: 'components/queryResults/queryResults.html',
+				controller: 'QueryResultsController',
+				controllerAs: 'queryResults'
 			}).
 			otherwise({
 			  redirectTo: '/DiggingIntoData/'

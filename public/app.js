@@ -9,6 +9,7 @@
             var vm = this;
 
             vm.hideLanding = true;
+            vm.hideSearchForm = false;
             vm.landingPage = true;
 		}
 })();
