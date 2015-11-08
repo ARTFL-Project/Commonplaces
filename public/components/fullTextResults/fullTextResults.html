@@ -1,0 +1,40 @@
+<div id="full-text-results">
+    <h5 style="color: white;">{{ fullTextResults.count }}
+        matches...</h5>
+    <span spinner-key="spinner-1" us-spinner="{radius:25, width:4, length: 16, scale: 0.75, speed: 1.5, fps: 30, top: '35%', color: ['#5B96AD', '#155F83', '#15435F']}"></span>
+    <div infinite-scroll="addMoreResults()" infinite-scroll-distance="1">
+        <div class="panel panel-default result" ng-repeat="result in fullTextResults.fullList | limitTo: displayLimit track by $index">
+            <h5>{{ ::$index + 1}}.&nbsp;</h5>
+            <div class="row">
+                <div class="col-xs-12 col-sm-6">
+                    <h5>
+                        <b>{{ ::result.author }}</b>,
+                        <i>{{ ::result.title }}</i>&nbsp;
+                        <b>[{{ ::result.date }}]</b>
+                    </h5>
+                    <p>
+                        {{ ::result.leftContext }}
+                        <span class="highlight">
+                            {{ ::result.matchContext }}
+                        </span>
+                        {{ ::result.rightContext}}
+                    </p>
+                </div>
+                <div class="col-xs-12 col-sm-6">
+                    <h5>
+                        <b>{{ ::result.targetAuthor }}</b>,
+                        <i>{{ ::result.targetTitle }}</i>&nbsp;
+                        <b>[{{ ::result.targetDate }}]</b>
+                    </h5>
+                    <p>
+                        {{ ::result.targetLeftContext }}
+                        <span class="highlight">
+                            {{ ::result.targetMatchContext }}
+                        </span>
+                        {{ ::result.targetRightContext}}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

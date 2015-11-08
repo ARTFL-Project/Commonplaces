@@ -14,7 +14,7 @@ import (
 type resultObject struct {
 	Author       string         `json:"author"`
 	Title        string         `json:"title"`
-	Date         int16          `json:"date"`
+	Date         int32          `json:"date"`
 	LeftContext  string         `json:"leftContext"`
 	RightContext string         `json:"rightContext"`
 	MatchContext string         `json:"matchContext"`
@@ -29,20 +29,27 @@ type results struct {
 	TitleList   []resultObject `json:"titleList"`
 }
 
-type metadataResultObject struct {
-	Author       *string `json:"author"`
-	Title        *string `json:"title"`
-	Date         *int16  `json:"date"`
-	LeftContext  *string `json:"leftContext"`
-	RightContext *string `json:"rightContext"`
-	MatchContext *string `json:"matchContext"`
-	ContextLink  *string `json:"contextLink"`
-	PassageID    *string `json:"passageID"`
+type fullTextResultObject struct {
+	Author             *string `json:"author"`
+	Title              *string `json:"title"`
+	Date               *int32  `json:"date"`
+	LeftContext        *string `json:"leftContext"`
+	RightContext       *string `json:"rightContext"`
+	MatchContext       *string `json:"matchContext"`
+	ContextLink        *string `json:"contextLink"`
+	TargetAuthor       *string `json:"targetAuthor"`
+	TargetTitle        *string `json:"targetTitle"`
+	TargetDate         *int32  `json:"targetDate"`
+	TargetLeftContext  *string `json:"targetLeftContext"`
+	TargetRightContext *string `json:"targetRightContext"`
+	TargetMatchContext *string `json:"targetMatchContext"`
+	TargetContextLink  *string `json:"targetContextLink"`
+	PassageID          *int32  `json:"passageID"`
 }
 
-type metadataResults struct {
+type FullTextResults struct {
 	Count        int                    `json:"count"`
-	MetadataList []metadataResultObject `json:"metadataList"`
+	FullTextList []fullTextResultObject `json:"fullList"`
 }
 
 type urlKeyValue struct {
@@ -68,14 +75,17 @@ var defaultConnConfig pgx.ConnConfig
 var pool = createConnPool()
 
 var parameterMap = map[string]string{
-	"sourceauthor": "sourceauthor_fulltext",
-	"sourcetitle":  "sourcetitle_fulltext",
-	"matchcontext": "matchcontext_fulltext",
+	"sourceauthor":       "sourceauthor_fulltext",
+	"sourcetitle":        "sourcetitle_fulltext",
+	"sourcematchcontext": "sourcematchcontext_fulltext",
+	"targetauthor":       "targetauthor_fulltext",
+	"targettitle":        "targettitle_fulltext",
+	"targetmatchcontext": "targetmatchcontext_fulltext",
 }
 
 func createConnPool() *pgx.ConnPool {
 	defaultConnConfig.Host = "localhost"
-	defaultConnConfig.Database = "philologic"
+	defaultConnConfig.Database = "digging"
 	defaultConnConfig.User = "postgres"
 	defaultConnConfig.Password = "***REMOVED***"
 	config := pgx.ConnPoolConfig{ConnConfig: defaultConnConfig, MaxConnections: 10}
@@ -88,7 +98,7 @@ func createConnPool() *pgx.ConnPool {
 
 func findCommonPlaces(c *gin.Context) {
 	passageID := c.Param("passageID")
-	rows, err := pool.Query("select sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcecontextlink, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetcontextlink from eccotcpxallgale where passageident=$1", passageID)
+	rows, err := pool.Query("select sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcecontextlink, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetcontextlink from latin where passageident=$1", passageID)
 	if err != nil {
 		c.JSON(200, results{})
 	}
@@ -102,8 +112,8 @@ func findCommonPlaces(c *gin.Context) {
 		var targetAuthor string
 		var title string
 		var targetTitle string
-		var date int16
-		var targetDate int16
+		var date int32
+		var targetDate int32
 		var leftContext string
 		var targetLeftContext string
 		var rightContext string
@@ -177,22 +187,22 @@ func findCommonPlaces(c *gin.Context) {
 func fullTextQuery(c *gin.Context) {
 	queryStringMap, _ := url.ParseQuery(c.Request.URL.RawQuery)
 	fmt.Println(queryStringMap)
-	query := "select sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcecontextlink, passageident from eccotcpxallgale where "
-	count := 1
+	query := "select sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcecontextlink, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetcontextlink, passageident from latin where "
 	var params []string
 	var values []interface{}
 	for param, v := range queryStringMap {
 		for _, value := range v {
-			var paramValue string
-			if _, ok := parameterMap[param]; ok {
-				param = parameterMap[param]
-				paramValue = fmt.Sprintf("%s @@ to_tsquery('english', '%s')", param, value)
-			} else {
-				paramValue = fmt.Sprintf("%s='%s'", param, value)
+			if value != "" {
+				var paramValue string
+				if _, ok := parameterMap[param]; ok {
+					param = parameterMap[param]
+					paramValue = fmt.Sprintf("%s @@ to_tsquery('simple', '%s')", param, value)
+				} else {
+					paramValue = fmt.Sprintf("%s='%s'", param, value)
+				}
+				params = append(params, paramValue)
+				values = append(values, value)
 			}
-			params = append(params, paramValue)
-			values = append(values, value)
-			count++
 		}
 	}
 	query += strings.Join(params, " and ")
@@ -200,33 +210,41 @@ func fullTextQuery(c *gin.Context) {
 	fmt.Println(values)
 	rows, err := pool.Query(query)
 	if err != nil {
-		var emptyResults []metadataResultObject
-		fmt.Println("query failed")
-		c.JSON(200, metadataResults{0, emptyResults})
+		var emptyResults []fullTextResultObject
+		fmt.Println(err)
+		c.JSON(200, FullTextResults{0, emptyResults})
 	}
 
 	defer rows.Close()
 
-	var results metadataResults
+	var results FullTextResults
 	for rows.Next() {
 		var author string
+		var targetAuthor string
 		var title string
-		var date int16
+		var targetTitle string
+		var date int32
+		var targetDate int32
 		var leftContext string
+		var targetLeftContext string
 		var rightContext string
+		var targetRightContext string
 		var matchContext string
+		var targetMatchContext string
 		var contextLink string
-		var passageID string
-		err := rows.Scan(&author, &title, &date, &leftContext, &matchContext, &rightContext, &contextLink, &passageID)
+		var targetContextLink string
+		var passageID int32
+		err := rows.Scan(&author, &title, &date, &leftContext, &matchContext, &rightContext, &contextLink, &targetAuthor, &targetTitle, &targetDate, &targetLeftContext, &targetMatchContext, &targetRightContext, &targetContextLink, &passageID)
 		if err != nil {
-			var emptyResults []metadataResultObject
+			var emptyResults []fullTextResultObject
 			fmt.Println("retrieving results of query failed")
-			c.JSON(200, metadataResults{0, emptyResults})
+			fmt.Println(err)
+			c.JSON(200, FullTextResults{0, emptyResults})
 		}
-		sourceResults := metadataResultObject{&author, &title, &date, &leftContext, &matchContext, &rightContext, &contextLink, &passageID}
-		results.MetadataList = append(results.MetadataList, sourceResults)
+		sourceResults := fullTextResultObject{&author, &title, &date, &leftContext, &matchContext, &rightContext, &contextLink, &targetAuthor, &targetTitle, &targetDate, &targetLeftContext, &targetMatchContext, &targetRightContext, &targetContextLink, &passageID}
+		results.FullTextList = append(results.FullTextList, sourceResults)
 	}
-	results.Count = len(results.MetadataList)
+	results.Count = len(results.FullTextList)
 	c.JSON(200, results)
 }
 

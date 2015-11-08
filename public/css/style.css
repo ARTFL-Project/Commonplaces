@@ -97,8 +97,9 @@ form h4, #section-container h4 {
 .search-field, #show-form {
   padding-bottom: 10px;
   padding-top: 10px;
+  text-align: left;
 }
-#results {
+#results, #full-text-container {
   margin-top: 110px;
   transition: all ease-out 300ms;
 }
@@ -128,6 +129,9 @@ form h4, #section-container h4 {
 }
 #landing-page-container .panel {
   padding: 15px;
+}
+#metadata-search .panel {
+    padding: 10px 30px;
 }
 #landing-page-container ul {
   list-style-type: none;

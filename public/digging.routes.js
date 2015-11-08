@@ -13,9 +13,9 @@
 				controllerAs: 'passageResults'
             }).
 			when('/DiggingIntoData/query?:queryArgs', {
-				templateUrl: 'components/queryResults/queryResults.html',
-				controller: 'QueryResultsController',
-				controllerAs: 'queryResults'
+				templateUrl: 'components/fullTextResults/fullTextContainer.html',
+				controller: 'FullTextController',
+				controllerAs: 'fullText'
 			}).
 			otherwise({
 			  redirectTo: '/DiggingIntoData/'
