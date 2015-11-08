@@ -65,7 +65,7 @@
                         alert("You haven't searched for anything, please fill in one of the search boxes");
                     } else {
                         hideLandingPage();
-		                $location.url('DiggingIntoData/query?' + urlString)
+		                $location.url('/query?' + urlString)
                     }
     			};
                 scope.toggleForm = function() {

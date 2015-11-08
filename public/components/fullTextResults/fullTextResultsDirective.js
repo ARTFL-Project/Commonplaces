@@ -12,7 +12,7 @@
                 var formData = $location.search();
 
                 var urlString = URL.objectToString(formData)
-                $http.get('DiggingIntoData/api/fulltext?' + urlString).then(function(response) {
+                $http.get('api/fulltext?' + urlString).then(function(response) {
                     scope.fullTextResults = response.data;
                     // usSpinnerService.stop('spinner-1');
                 });

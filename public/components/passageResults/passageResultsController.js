@@ -11,7 +11,7 @@
 		vm.formData = $location.search();
 
         vm.passageID = $routeParams.passageID;
-        $http.get('DiggingIntoData/api/commonplaces/' + vm.passageID).then(function(response) {
+        $http.get('api/commonplaces/' + vm.passageID).then(function(response) {
             vm.results = response.data;
             vm.timeline = [];
             vm.count = response.data.length;

@@ -7,18 +7,18 @@
 
 	function DiggingAppConfig($routeProvider, $locationProvider) {
 		$routeProvider.
-            when('/DiggingIntoData/passage/:passageID', {
+            when('/passage/:passageID', {
                 templateUrl: 'components/passageResults/passageResults.html',
 				controller: 'PassageController',
 				controllerAs: 'passageResults'
             }).
-			when('/DiggingIntoData/query?:queryArgs', {
+			when('/query?:queryArgs', {
 				templateUrl: 'components/fullTextResults/fullTextContainer.html',
 				controller: 'FullTextController',
 				controllerAs: 'fullText'
 			}).
 			otherwise({
-			  redirectTo: '/DiggingIntoData/'
+			  redirectTo: '/'
 			});
 		$locationProvider.html5Mode({
 			enabled: true

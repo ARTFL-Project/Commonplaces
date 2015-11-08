@@ -34,8 +34,8 @@ type fullTextResultObject struct {
 	Title              *string `json:"title"`
 	Date               *int32  `json:"date"`
 	LeftContext        *string `json:"leftContext"`
-	RightContext       *string `json:"rightContext"`
 	MatchContext       *string `json:"matchContext"`
+	RightContext       *string `json:"rightContext"`
 	ContextLink        *string `json:"contextLink"`
 	TargetAuthor       *string `json:"targetAuthor"`
 	TargetTitle        *string `json:"targetTitle"`
@@ -98,7 +98,7 @@ func createConnPool() *pgx.ConnPool {
 
 func findCommonPlaces(c *gin.Context) {
 	passageID := c.Param("passageID")
-	rows, err := pool.Query("select sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcecontextlink, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetcontextlink from latin where passageident=$1", passageID)
+	rows, err := pool.Query("select sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcecontextlink, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetcontextlink from eebo where passageident=$1", passageID)
 	if err != nil {
 		c.JSON(200, results{})
 	}
@@ -187,7 +187,7 @@ func findCommonPlaces(c *gin.Context) {
 func fullTextQuery(c *gin.Context) {
 	queryStringMap, _ := url.ParseQuery(c.Request.URL.RawQuery)
 	fmt.Println(queryStringMap)
-	query := "select sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcecontextlink, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetcontextlink, passageident from latin where "
+	query := "select sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcecontextlink, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetcontextlink, passageident from eebo where "
 	var params []string
 	var values []interface{}
 	for param, v := range queryStringMap {
@@ -263,12 +263,12 @@ func main() {
 	router.Static("components", "./public/components")
 	router.Static("css", "./public/css")
 	// Routes
-	router.GET("/DiggingIntoData/", index)
-	router.GET("/DiggingIntoData/passage/:passageID", index)
-	router.GET("/DiggingIntoData/query", index)
+	router.GET("/", index)
+	router.GET("/passage/:passageID", index)
+	router.GET("/query", index)
 	// API calls
-	router.GET("/DiggingIntoData/api/commonplaces/:passageID", findCommonPlaces)
-	router.GET("/DiggingIntoData/api/fulltext", fullTextQuery)
+	router.GET("/api/commonplaces/:passageID", findCommonPlaces)
+	router.GET("/api/fulltext", fullTextQuery)
 
 	router.Run(":3000")
 }
