@@ -57,7 +57,7 @@
         return {
             templateUrl: 'components/searchForm/searchForm.html',
             link: function(scope) {
-    			scope.formData = {};
+    			scope.formData = $location.search();
     			scope.submit = function() {
     				scope.results = [];
     				var urlString = URL.objectToString(scope.formData);

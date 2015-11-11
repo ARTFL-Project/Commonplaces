@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -30,6 +31,7 @@ type results struct {
 }
 
 type fullTextResultObject struct {
+	AlignmentID        *int32  `json:"alignmentID"`
 	Author             *string `json:"author"`
 	Title              *string `json:"title"`
 	Date               *int32  `json:"date"`
@@ -41,8 +43,8 @@ type fullTextResultObject struct {
 	TargetTitle        *string `json:"targetTitle"`
 	TargetDate         *int32  `json:"targetDate"`
 	TargetLeftContext  *string `json:"targetLeftContext"`
-	TargetRightContext *string `json:"targetRightContext"`
 	TargetMatchContext *string `json:"targetMatchContext"`
+	TargetRightContext *string `json:"targetRightContext"`
 	TargetContextLink  *string `json:"targetContextLink"`
 	PassageID          *int32  `json:"passageID"`
 }
@@ -187,9 +189,14 @@ func findCommonPlaces(c *gin.Context) {
 func fullTextQuery(c *gin.Context) {
 	queryStringMap, _ := url.ParseQuery(c.Request.URL.RawQuery)
 	fmt.Println(queryStringMap)
-	query := "select sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcecontextlink, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetcontextlink, passageident from eebo where "
+	query := "select alignment_id, sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcecontextlink, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetcontextlink, passageident from eebo where "
 	var params []string
 	var values []interface{}
+	start := 0
+	if _, ok := queryStringMap["start"]; ok {
+		start, _ = strconv.Atoi(queryStringMap["start"][0])
+		delete(queryStringMap, "start")
+	}
 	for param, v := range queryStringMap {
 		for _, value := range v {
 			if value != "" {
@@ -198,7 +205,12 @@ func fullTextQuery(c *gin.Context) {
 					param = parameterMap[param]
 					paramValue = fmt.Sprintf("%s @@ to_tsquery('simple', '%s')", param, value)
 				} else {
-					paramValue = fmt.Sprintf("%s='%s'", param, value)
+					dateRange := strings.Split(value, "-")
+					if len(dateRange) == 2 {
+						paramValue = fmt.Sprintf("%s between %s and %s", param, dateRange[0], dateRange[1])
+					} else {
+						paramValue = fmt.Sprintf("%s='%s'", param, value)
+					}
 				}
 				params = append(params, paramValue)
 				values = append(values, value)
@@ -206,6 +218,7 @@ func fullTextQuery(c *gin.Context) {
 		}
 	}
 	query += strings.Join(params, " and ")
+	query += fmt.Sprintf(" and alignment_id >= %d order by sourcedate limit 20", start)
 	fmt.Printf("query is:%s\n", query)
 	fmt.Println(values)
 	rows, err := pool.Query(query)
@@ -219,6 +232,7 @@ func fullTextQuery(c *gin.Context) {
 
 	var results FullTextResults
 	for rows.Next() {
+		var alignmentID int32
 		var author string
 		var targetAuthor string
 		var title string
@@ -234,14 +248,14 @@ func fullTextQuery(c *gin.Context) {
 		var contextLink string
 		var targetContextLink string
 		var passageID int32
-		err := rows.Scan(&author, &title, &date, &leftContext, &matchContext, &rightContext, &contextLink, &targetAuthor, &targetTitle, &targetDate, &targetLeftContext, &targetMatchContext, &targetRightContext, &targetContextLink, &passageID)
+		err := rows.Scan(&alignmentID, &author, &title, &date, &leftContext, &matchContext, &rightContext, &contextLink, &targetAuthor, &targetTitle, &targetDate, &targetLeftContext, &targetMatchContext, &targetRightContext, &targetContextLink, &passageID)
 		if err != nil {
 			var emptyResults []fullTextResultObject
 			fmt.Println("retrieving results of query failed")
 			fmt.Println(err)
 			c.JSON(200, FullTextResults{0, emptyResults})
 		}
-		sourceResults := fullTextResultObject{&author, &title, &date, &leftContext, &matchContext, &rightContext, &contextLink, &targetAuthor, &targetTitle, &targetDate, &targetLeftContext, &targetMatchContext, &targetRightContext, &targetContextLink, &passageID}
+		sourceResults := fullTextResultObject{&alignmentID, &author, &title, &date, &leftContext, &matchContext, &rightContext, &contextLink, &targetAuthor, &targetTitle, &targetDate, &targetLeftContext, &targetMatchContext, &targetRightContext, &targetContextLink, &passageID}
 		results.FullTextList = append(results.FullTextList, sourceResults)
 	}
 	results.Count = len(results.FullTextList)

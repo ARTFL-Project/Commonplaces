@@ -198,3 +198,23 @@ form h4, #section-container h4 {
 #timeline-container a:hover, #timeline-container a:focus {
   text-decoration: none !important
 }
+.alignment {
+    position: relative;
+}
+.source-alignment {
+    padding-right: 30px;
+}
+.target-alignment {
+    padding-left: 30px;
+}
+.source-alignment, .target-alignment {
+    text-align: justify;
+}
+.result-number {
+    background-color: rgb(21, 95, 131);
+    color: #fff;
+    position: absolute;
+    top: -11px;
+    left: -1px;
+    padding: 3px;
+}
