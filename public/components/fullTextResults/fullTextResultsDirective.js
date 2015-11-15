@@ -21,10 +21,10 @@
                 scope.addMoreResults = function() {
                     formData.start = scope.displayLimit
                     if (scope.displayLimit !== 20) {
-                        formData.start += 20
+                        formData.start += 40
                     }
                     $http.get('api/fulltext?' + urlString).then(function(response) {
-                        scope.displayLimit += 20
+                        scope.displayLimit += 40
                         Array.prototype.push.apply(scope.fullTextResults.fullList, response.data.fullList);
                         // usSpinnerService.stop('spinner-1');
                     });

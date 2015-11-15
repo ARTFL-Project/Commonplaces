@@ -5,6 +5,10 @@
     <div infinite-scroll="addMoreResults()" infinite-scroll-distance="1">
         <div class="panel panel-default result alignment" ng-repeat="result in fullTextResults.fullList | limitTo: displayLimit track by $index">
             <h5 class="result-number">{{ ::$index + 1}}</h5>
+
+            <!-- <h5 class="commonplace-notification" ng-if="result.passageID == 0">
+                The highlighted passage is not a commonplace
+            </h5> -->
             <div class="row">
                 <div style="position: absolute; left: 50%; transform: translate(0%,150%); z-index: 10;">
                     <h2 style="margin-left: -15px">=></h2>
@@ -37,6 +41,9 @@
                         {{ ::result.targetRightContext}}
                     </p>
                 </div>
+            </div>
+            <div class="commonplace-notification" ng-if="result.passageID != 0">
+                <span class="panel panel-default exclamation-point">&#33;</span> This may be a <a href="passage/{{ ::result.passageID }}">commonplace</a>
             </div>
         </div>
     </div>

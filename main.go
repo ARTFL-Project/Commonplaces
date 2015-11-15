@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -11,6 +13,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx"
 )
+
+type config struct {
+	Port      string              `json:"port"`
+	Databases []map[string]string `json:"databases"`
+	Debug     bool                `json:"debug"`
+}
 
 type resultObject struct {
 	Author       string         `json:"author"`
@@ -47,10 +55,11 @@ type fullTextResultObject struct {
 	TargetRightContext *string `json:"targetRightContext"`
 	TargetContextLink  *string `json:"targetContextLink"`
 	PassageID          *int32  `json:"passageID"`
+	PassageIDCount     *int32  `json:"passageIDCount"`
 }
 
 type FullTextResults struct {
-	Count        int                    `json:"count"`
+	Count        int64                  `json:"count"`
 	FullTextList []fullTextResultObject `json:"fullList"`
 }
 
@@ -72,6 +81,8 @@ func (slice byDate) Less(i, j int) bool {
 func (slice byDate) Swap(i, j int) {
 	slice[i], slice[j] = slice[j], slice[i]
 }
+
+var webConfig config = databaseConfig()
 
 var defaultConnConfig pgx.ConnConfig
 var pool = createConnPool()
@@ -100,7 +111,10 @@ func createConnPool() *pgx.ConnPool {
 
 func findCommonPlaces(c *gin.Context) {
 	passageID := c.Param("passageID")
-	rows, err := pool.Query("select sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcecontextlink, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetcontextlink from eebo where passageident=$1", passageID)
+	query := "select sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcecontextlink, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetcontextlink from eebo where passageident=$1"
+	fmt.Printf("query is:%s\n", query)
+	fmt.Println(passageID)
+	rows, err := pool.Query(query, passageID)
 	if err != nil {
 		c.JSON(200, results{})
 	}
@@ -189,7 +203,7 @@ func findCommonPlaces(c *gin.Context) {
 func fullTextQuery(c *gin.Context) {
 	queryStringMap, _ := url.ParseQuery(c.Request.URL.RawQuery)
 	fmt.Println(queryStringMap)
-	query := "select alignment_id, sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcecontextlink, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetcontextlink, passageident from eebo where "
+	query := "select alignment_id, sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcecontextlink, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetcontextlink, passageident, passageidentcount from eebo where "
 	var params []string
 	var values []interface{}
 	start := 0
@@ -218,7 +232,7 @@ func fullTextQuery(c *gin.Context) {
 		}
 	}
 	query += strings.Join(params, " and ")
-	query += fmt.Sprintf(" and alignment_id >= %d order by sourcedate limit 20", start)
+	query += fmt.Sprintf(" and alignment_id >= %d limit 20", start)
 	fmt.Printf("query is:%s\n", query)
 	fmt.Println(values)
 	rows, err := pool.Query(query)
@@ -248,17 +262,26 @@ func fullTextQuery(c *gin.Context) {
 		var contextLink string
 		var targetContextLink string
 		var passageID int32
-		err := rows.Scan(&alignmentID, &author, &title, &date, &leftContext, &matchContext, &rightContext, &contextLink, &targetAuthor, &targetTitle, &targetDate, &targetLeftContext, &targetMatchContext, &targetRightContext, &targetContextLink, &passageID)
+		var passageIDCount int32
+		err := rows.Scan(&alignmentID, &author, &title, &date, &leftContext, &matchContext, &rightContext, &contextLink, &targetAuthor, &targetTitle, &targetDate, &targetLeftContext, &targetMatchContext, &targetRightContext, &targetContextLink, &passageID, &passageIDCount)
 		if err != nil {
 			var emptyResults []fullTextResultObject
 			fmt.Println("retrieving results of query failed")
 			fmt.Println(err)
 			c.JSON(200, FullTextResults{0, emptyResults})
 		}
-		sourceResults := fullTextResultObject{&alignmentID, &author, &title, &date, &leftContext, &matchContext, &rightContext, &contextLink, &targetAuthor, &targetTitle, &targetDate, &targetLeftContext, &targetMatchContext, &targetRightContext, &targetContextLink, &passageID}
+		sourceResults := fullTextResultObject{&alignmentID, &author, &title, &date, &leftContext, &matchContext, &rightContext, &contextLink, &targetAuthor, &targetTitle, &targetDate, &targetLeftContext, &targetMatchContext, &targetRightContext, &targetContextLink, &passageID, &passageIDCount}
 		results.FullTextList = append(results.FullTextList, sourceResults)
 	}
-	results.Count = len(results.FullTextList)
+
+	countQuery := "select count(*) from eebo where " + strings.Join(params, " and ")
+	fmt.Println(countQuery)
+	countingErr := pool.QueryRow(countQuery).Scan(&results.Count)
+	// var newCount int32
+	// countingErr := countRow.Scan(&results.Count)
+	if countingErr != nil {
+		fmt.Println(countingErr)
+	}
 	c.JSON(200, results)
 }
 
@@ -268,7 +291,28 @@ func index(c *gin.Context) {
 	})
 }
 
+func databaseConfig() config {
+	configFile, err := os.Open("config.json")
+	if err != nil {
+		fmt.Println("opening config file", err.Error())
+	}
+
+	var settings config
+	jsonParser := json.NewDecoder(configFile)
+	if err = jsonParser.Decode(&settings); err != nil {
+		fmt.Println("parsing config file", err.Error())
+	}
+	return settings
+}
+
 func main() {
+
+	fmt.Println(webConfig)
+
+	if !webConfig.Debug {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
 	router := gin.Default()
 
 	// Static files
@@ -284,5 +328,5 @@ func main() {
 	router.GET("/api/commonplaces/:passageID", findCommonPlaces)
 	router.GET("/api/fulltext", fullTextQuery)
 
-	router.Run(":3000")
+	router.Run(":" + webConfig.Port)
 }

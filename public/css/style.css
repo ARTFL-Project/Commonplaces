@@ -216,5 +216,18 @@ form h4, #section-container h4 {
     position: absolute;
     top: -11px;
     left: -1px;
-    padding: 3px;
+    padding: 5px;
+}
+.commonplace-notification {
+    display: inline-block;
+    margin-top: 10px;
+}
+.commonplace-notification a {
+    font-weight: 700;
+}
+.exclamation-point {
+    padding: 6px;
+    background-color: rgba(44,170,226, 1);
+    font-size: 1.3em;
+    font-weight: 700;
 }
