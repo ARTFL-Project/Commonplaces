@@ -111,7 +111,8 @@ func createConnPool() *pgx.ConnPool {
 
 func findCommonPlaces(c *gin.Context) {
 	passageID := c.Param("passageID")
-	query := "select sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcecontextlink, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetcontextlink from eebo where passageident=$1"
+	dbname := c.Param("dbname")
+	query := "select sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcecontextlink, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetcontextlink from " + dbname + " where passageident=$1"
 	fmt.Printf("query is:%s\n", query)
 	fmt.Println(passageID)
 	rows, err := pool.Query(query, passageID)
@@ -202,8 +203,18 @@ func findCommonPlaces(c *gin.Context) {
 
 func fullTextQuery(c *gin.Context) {
 	queryStringMap, _ := url.ParseQuery(c.Request.URL.RawQuery)
+	dbname := queryStringMap["dbname"][0]
+	delete(queryStringMap, "dbname")
+	var language string
+	for _, value := range webConfig.Databases {
+		if dbname == value["dbname"] {
+			language = value["language"]
+			break
+		}
+	}
+
 	fmt.Println(queryStringMap)
-	query := "select alignment_id, sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcecontextlink, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetcontextlink, passageident, passageidentcount from eebo where "
+	query := "select alignment_id, sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcecontextlink, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetcontextlink, passageident, passageidentcount from " + dbname + " where "
 	var params []string
 	var values []interface{}
 	start := 0
@@ -213,11 +224,11 @@ func fullTextQuery(c *gin.Context) {
 	}
 	for param, v := range queryStringMap {
 		for _, value := range v {
-			if value != "" {
+			if value != "" && value != "dbname" {
 				var paramValue string
 				if _, ok := parameterMap[param]; ok {
 					param = parameterMap[param]
-					paramValue = fmt.Sprintf("%s @@ to_tsquery('simple', '%s')", param, value)
+					paramValue = fmt.Sprintf("%s @@ to_tsquery('%s', '%s')", param, language, value)
 				} else {
 					dateRange := strings.Split(value, "-")
 					if len(dateRange) == 2 {
@@ -322,10 +333,10 @@ func main() {
 	router.Static("css", "./public/css")
 	// Routes
 	router.GET("/", index)
-	router.GET("/passage/:passageID", index)
+	router.GET("/passage/:dbname/:passageID", index)
 	router.GET("/query", index)
 	// API calls
-	router.GET("/api/commonplaces/:passageID", findCommonPlaces)
+	router.GET("/api/commonplaces/:dbname/:passageID", findCommonPlaces)
 	router.GET("/api/fulltext", fullTextQuery)
 
 	router.Run(":" + webConfig.Port)

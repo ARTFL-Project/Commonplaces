@@ -7,7 +7,7 @@
 
 	function DiggingAppConfig($routeProvider, $locationProvider) {
 		$routeProvider.
-            when('/passage/:passageID', {
+            when('/passage/:dbname/:passageID', {
                 templateUrl: 'components/passageResults/passageResults.html',
 				controller: 'PassageController',
 				controllerAs: 'passageResults'
