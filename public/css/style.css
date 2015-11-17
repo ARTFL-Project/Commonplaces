@@ -60,6 +60,7 @@ body {
   border-color: transparent;
 }
 
+
 /* Links */
 
 a {
@@ -100,7 +101,7 @@ form h4, #section-container h4 {
   text-align: left;
 }
 #results, #full-text-container {
-  margin-top: 110px;
+  margin-top: 290px;
   transition: all ease-out 300ms;
 }
 #results.down {
@@ -122,6 +123,7 @@ form h4, #section-container h4 {
   background-color: rgb(21, 95, 131);
 }
 #landing-page-container {
+  top: 50px;
   left: 15px;
   right: 15px;
   transition: all ease-in-out 300ms;
@@ -131,7 +133,7 @@ form h4, #section-container h4 {
   padding: 15px;
 }
 #metadata-search .panel {
-    padding: 10px 30px;
+  padding: 10px 30px;
 }
 #landing-page-container ul {
   list-style-type: none;
@@ -199,35 +201,43 @@ form h4, #section-container h4 {
   text-decoration: none !important
 }
 .alignment {
-    position: relative;
+  position: relative;
 }
 .source-alignment {
-    padding-right: 30px;
+  padding-right: 30px;
 }
 .target-alignment {
-    padding-left: 30px;
+  padding-left: 30px;
 }
 .source-alignment, .target-alignment {
-    text-align: justify;
+  text-align: justify;
 }
 .result-number {
-    background-color: rgb(21, 95, 131);
-    color: #fff;
-    position: absolute;
-    top: -11px;
-    left: -1px;
-    padding: 5px;
+  background-color: rgb(21, 95, 131);
+  color: #fff;
+  position: absolute;
+  top: -11px;
+  left: -1px;
+  padding: 5px;
 }
 .commonplace-notification {
-    display: inline-block;
-    margin-top: 10px;
+  display: inline-block;
+  margin-top: 10px;
 }
 .commonplace-notification a {
-    font-weight: 700;
+  font-weight: 700;
 }
 .exclamation-point {
-    padding: 6px;
-    background-color: rgba(44,170,226, 1);
-    font-size: 1.3em;
-    font-weight: 700;
+  padding: 6px;
+  background-color: rgba(44, 170, 226, 1);
+  font-size: 1.3em;
+  font-weight: 700;
+}
+
+/*Header*/
+
+nav > div > div.navbar-header > a {
+  font-variant: small-caps;
+  font-size: 2em;
+  color: #000 !important;
 }

@@ -12,7 +12,7 @@
 				controller: 'PassageController',
 				controllerAs: 'passageResults'
             }).
-			when('/query?:queryArgs', {
+			when('/query/:dbname/search?:queryArgs', {
 				templateUrl: 'components/fullTextResults/fullTextContainer.html',
 				controller: 'FullTextController',
 				controllerAs: 'fullText'

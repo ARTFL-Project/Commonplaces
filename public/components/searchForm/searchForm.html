@@ -1,4 +1,14 @@
 <form ng-submit="submit()">
+    <div id="dbname-search" class="panel panel-default" style="text-align: center;position: relative;">
+        <span class="glyphicon glyphicon-chevron-right" style="display: none; position: absolute; left: 5px; top: 5px"></span>
+        <span class="glyphicon glyphicon-chevron-down" style="display: none; position: absolute; left: 5px; top: 5px"></span>
+        <h4>Choose Source of Commonplace</h4>
+        <div class="btn-group btn-group-justified" role="group" aria-label="...">
+          <div class="btn-group" role="group" ng-repeat="db in databases">
+            <button type="button" class="btn btn-default" ng-class="{'active': dbActive == db.dbname}" ng-click="setDb(db.dbname)">{{ db.label }}</button>
+          </div>
+        </div>
+    </div>
     <div id="fulltext-search" class="panel panel-default" style="text-align: center;position: relative;">
         <span class="glyphicon glyphicon-chevron-right" style="display: none; position: absolute; left: 5px; top: 5px"></span>
         <span class="glyphicon glyphicon-chevron-down" style="display: none; position: absolute; left: 5px; top: 5px"></span>

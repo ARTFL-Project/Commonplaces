@@ -1,14 +1,36 @@
 <!DOCTYPE html>
 <html ng-app="DiggingApp">
+
 <head>
   <base href="/">
-  <title>Digging Into Data</title>
-      <link href="http://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic,700,700italic&subset=latin,cyrillic-ext,greek-ext,greek,latin-ext,cyrillic" rel="stylesheet">
-   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
-   <link rel="stylesheet" href="css/style.css">
+  <title>Commonplaces in the 18th Century</title>
+  <link href="http://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic,700,700italic&subset=latin,cyrillic-ext,greek-ext,greek,latin-ext,cyrillic" rel="stylesheet">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
+  <!-- Fixed navbar -->
+  <nav class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="#">Commonplaces in the 18<sup style="font-variant: normal; font-size: .5em">th</sup> Century</a>
+      </div>
+      <div id="navbar" class="navbar-collapse collapse">
+        <ul class="nav navbar-nav navbar-right">
+          <li><a href="">The ARTFL Project</a></li>
+          <li><a href="">Oxford E-Research Center</a></li>
+        </ul>
+      </div>
+      <!--/.nav-collapse -->
+    </div>
+  </nav>
   <div class="container-fluid" ng-controller="MainController as main">
     <landing-page></landing-page>
     <div ng-view></div>
@@ -42,4 +64,5 @@
   <script src="public/components/fullTextResults/fullTextController.js"></script>
   <script src="public/components/fullTextResults/fullTextResultsDirective.js"></script>
 </body>
+
 </html>

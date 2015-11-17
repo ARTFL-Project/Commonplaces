@@ -12,7 +12,7 @@
 
         vm.passageID = $routeParams.passageID;
         vm.dbname = $routeParams.dbname;
-        $http.get('api/commonplaces/' + vm.dbname + "/" + vm.passageID).then(function(response) {
+        $http.get('api/' + vm.dbname + '/commonplaces/' + vm.passageID).then(function(response) {
             vm.results = response.data;
             vm.timeline = [];
             vm.count = response.data.length;

@@ -82,7 +82,7 @@ func (slice byDate) Swap(i, j int) {
 	slice[i], slice[j] = slice[j], slice[i]
 }
 
-var webConfig config = databaseConfig()
+var webConfig = databaseConfig()
 
 var defaultConnConfig pgx.ConnConfig
 var pool = createConnPool()
@@ -203,7 +203,7 @@ func findCommonPlaces(c *gin.Context) {
 
 func fullTextQuery(c *gin.Context) {
 	queryStringMap, _ := url.ParseQuery(c.Request.URL.RawQuery)
-	dbname := queryStringMap["dbname"][0]
+	dbname := c.Param("dbname")
 	delete(queryStringMap, "dbname")
 	var language string
 	for _, value := range webConfig.Databases {
@@ -334,10 +334,10 @@ func main() {
 	// Routes
 	router.GET("/", index)
 	router.GET("/passage/:dbname/:passageID", index)
-	router.GET("/query", index)
+	router.GET("/query/:dbname/search", index)
 	// API calls
-	router.GET("/api/commonplaces/:dbname/:passageID", findCommonPlaces)
-	router.GET("/api/fulltext", fullTextQuery)
+	router.GET("/api/:dbname/commonplaces/:passageID", findCommonPlaces)
+	router.GET("/api/:dbname/fulltext", fullTextQuery)
 
 	router.Run(":" + webConfig.Port)
 }
