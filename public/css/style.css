@@ -1,4 +1,4 @@
-.btn, .panel, .panel-heading, .list-group-item:first-child, .list-group-item:last-child, .popover, .progress, .form-control, .tooltip-inner, .modal-content, .pagination a {
+.btn, .panel, .panel-heading, .list-group-item:first-child, .list-group-item:last-child, .popover, .progress, .form-control, .tooltip-inner, .modal-content, .pagination a, .nav-tabs.nav-justified>li>a {
   border-radius: 0 !important;
 }
 .btn:focus {
@@ -9,7 +9,7 @@
 }
 body {
   color: rgb(61, 61, 61);
-  background-color: rgb(91, 143, 168);
+  /*background-color: rgb(91, 143, 168);*/
   font-family: 'Roboto', sans-serif;
 }
 
@@ -17,12 +17,14 @@ body {
 
 .navbar-inverse, .panel-default > .panel-heading {
   background: rgb(21, 67, 95) !important;
+  border-color: rgb(21, 67, 95) !important;
 }
 .navbar-brand:hover, .navbar-inverse .navbar-nav>li>a:hover, .panel-default > .panel-heading {
   color: rgb(255, 255, 255) !important;
 }
 .navbar {
-  box-shadow: 0 .2em 8px .01em rgba(0, 0, 0, 0.2);
+  /*box-shadow: 0 .2em 8px .01em rgba(0, 0, 0, 0.2);*/
+  box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
 }
 .navbar-brand, .navbar-inverse a {
   color: rgb(236, 237, 238) !important;
@@ -75,8 +77,9 @@ a:hover {
 #landing-page-container {
   position: absolute;
 }
-#fulltext-search, #metadata-search, #section-container {
-  box-shadow: 1px 1px 5px #555;
+#dbname-search, #fulltext-search, #metadata-search, #section-container {
+  /*box-shadow: 1px 1px 5px #555;*/
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
 }
 
 /*Search form*/
@@ -101,7 +104,7 @@ form h4, #section-container h4 {
   text-align: left;
 }
 #results, #full-text-container {
-  margin-top: 290px;
+  margin-top: 200px;
   transition: all ease-out 300ms;
 }
 #results.down {
@@ -135,10 +138,10 @@ form h4, #section-container h4 {
 #metadata-search .panel {
   padding: 10px 30px;
 }
-#landing-page-container ul {
+#landing-page-container #section-container ul {
   list-style-type: none;
 }
-#landing-page-container li {
+#landing-page-container #section-container li {
   margin-left: -30px;
   padding: 5px;
 }
@@ -239,5 +242,4 @@ form h4, #section-container h4 {
 nav > div > div.navbar-header > a {
   font-variant: small-caps;
   font-size: 2em;
-  color: #000 !important;
 }

@@ -2,14 +2,21 @@
     'use strict';
 
 	angular
-		.module('DiggingApp', ['ngRoute', 'ngTouch', 'ngSanitize', 'ngCookies', 'angularSpinner', 'infinite-scroll'])
+		.module('DiggingApp')
 		.controller('MainController', MainController);
 
-		function MainController($location, $anchorScroll, $timeout, URL, usSpinnerService) {
+		function MainController($http, webConfig) {
             var vm = this;
 
             vm.hideLanding = true;
             vm.hideSearchForm = false;
             vm.landingPage = true;
+            vm.webConfig = webConfig;
+
+            vm.openLandingPage = function() {
+                if (vm.hideSearchForm) {
+                    vm.hideSearchForm = false;
+                }
+            }
 		}
 })();

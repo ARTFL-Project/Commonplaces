@@ -296,6 +296,10 @@ func fullTextQuery(c *gin.Context) {
 	c.JSON(200, results)
 }
 
+func exportConfig(c *gin.Context) {
+	c.JSON(200, webConfig)
+}
+
 func index(c *gin.Context) {
 	c.HTML(http.StatusOK, "index.html", gin.H{
 		"title": "Main website",
@@ -338,6 +342,8 @@ func main() {
 	// API calls
 	router.GET("/api/:dbname/commonplaces/:passageID", findCommonPlaces)
 	router.GET("/api/:dbname/fulltext", fullTextQuery)
+	// Export config
+	router.GET("/config/config.json", exportConfig)
 
 	router.Run(":" + webConfig.Port)
 }

@@ -18,7 +18,7 @@
             element.parent().velocity({
                 "padding-top": 0,
                 "padding-bottom": 0,
-                "margin-bottom": "2px",
+                "margin-bottom": "5px",
                 "margin-top": 0
             }, {
                 duration: 250,
@@ -68,17 +68,16 @@
             element.parent().find('.glyphicon-chevron-right').hide();
             element.parent().find('.glyphicon-chevron-down').show();
         }
+        var showLandingPage = function() {
+            angular.element("#landing-page-container").find('.hiding-element').each(function() {
+                showElement(angular.element(this));
+            })
+        }
         return {
             templateUrl: 'components/searchForm/searchForm.html',
             link: function(scope) {
-                scope.databases = [{
-                    dbname: "eebo",
-                    label: "EBBO-TCP"
-                }, {
-                    dbname: "latin",
-                    label: "Packard"
-                }];
-                scope.dbActive = scope.databases[0].dbname;
+                scope.description = false;
+                scope.dbActive = scope.main.webConfig.databases[0].dbname;
                 scope.formData = $location.search();
                 scope.submit = function() {
                     scope.results = [];
@@ -99,13 +98,14 @@
                 }
                 scope.$watch("main.hideSearchForm", function(currentValue) {
                     if (currentValue) {
-                        hideLandingPage()
+                        hideLandingPage();
                     } else {
-
+                        showLandingPage();
                     }
                 });
                 scope.setDb = function(dbname) {
                     scope.dbActive = dbname;
+                    scope.description = true;
                     $location.url(dbname);
                 }
             }

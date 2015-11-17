@@ -2,7 +2,7 @@
     <h5 style="color: white;">{{ fullTextResults.count }}
         matches in...</h5>
     <span spinner-key="spinner-1" us-spinner="{radius:25, width:4, length: 16, scale: 0.75, speed: 1.5, fps: 30, top: '35%', color: ['#5B96AD', '#155F83', '#15435F']}"></span>
-    <div infinite-scroll="addMoreResults()" infinite-scroll-distance="1">
+    <div infinite-scroll="addMoreResults()" infinite-scroll-distance="1" infinite-scroll-disabled="loadingData" infinite-scroll-immediate-check="false">
         <div class="panel panel-default result alignment" ng-repeat="result in fullTextResults.fullList | limitTo: displayLimit track by $index">
             <h5 class="result-number">{{ ::$index + 1}}</h5>
 
@@ -46,5 +46,6 @@
                 <span class="panel panel-default exclamation-point">&#33;</span> This may be a <a href="passage/{{ ::dbname }}/{{ ::result.passageID }}">commonplace</a>
             </div>
         </div>
+        <div ng-show="loadingData">Loading data...</div>
     </div>
 </div>
