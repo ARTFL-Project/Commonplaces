@@ -30,7 +30,6 @@
                             scope.displayLimit += 40
                             Array.prototype.push.apply(scope.fullTextResults.fullList, response.data.fullList);
                             scope.loadingData = false;
-                            // usSpinnerService.stop('spinner-1');
                         });
                     }
                 }
