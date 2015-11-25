@@ -1,30 +1,24 @@
 <div id="full-text-results">
-    <h5 style="color: white;">{{ fullTextResults.count }}
-        matches in...</h5>
     <span spinner-key="spinner-1" us-spinner="{radius:25, width:4, length: 16, scale: 0.75, speed: 1.5, fps: 30, top: '35%', color: ['#5B96AD', '#155F83', '#15435F']}"></span>
     <div infinite-scroll="addMoreResults()" infinite-scroll-distance="1" infinite-scroll-disabled="loadingData" infinite-scroll-immediate-check="false">
         <div class="panel panel-default result alignment" ng-repeat="result in fullTextResults.fullList | limitTo: displayLimit track by $index">
             <h5 class="result-number">{{ ::$index + 1}}</h5>
-
-            <!-- <h5 class="commonplace-notification" ng-if="result.passageID == 0">
-                The highlighted passage is not a commonplace
-            </h5> -->
             <div class="row">
                 <div style="position: absolute; left: 50%; transform: translate(0%,150%); z-index: 10;">
                     <h2 style="margin-left: -15px">=></h2>
                 </div>
                 <div class="col-xs-12 col-sm-6 source-alignment">
                     <h5>
-                        <b>{{ ::result.author }}</b>,
-                        <i>{{ ::result.title }}</i>&nbsp;
-                        <b>[{{ ::result.date }}]</b>
+                        <b>{{ ::result.sourceauthor }}</b>,
+                        <i>{{ ::result.sourcetitle }}</i>&nbsp;
+                        <b>[{{ ::result.sourcedate }}]</b>
                     </h5>
                     <p>
-                        {{ ::result.leftContext }}
+                        {{ ::result.sourceleftContext }}
                         <span class="highlight">
-                            {{ ::result.matchContext }}
+                            {{ ::result.sourcematchContext }}
                         </span>
-                        {{ ::result.rightContext}}
+                        {{ ::result.sourcerightContext}}
                     </p>
                 </div>
                 <div class="col-xs-12 col-sm-6 target-alignment">
@@ -46,6 +40,9 @@
                 <span class="panel panel-default exclamation-point">&#33;</span> This may be a <a href="passage/{{ ::dbname }}/{{ ::result.passageID }}">commonplace</a>
             </div>
         </div>
-        <div ng-show="loadingData">Loading data...</div>
+        <div style="text-align: center;" ng-show="loadingData">
+            Loading data...
+            <span us-spinner></span>
+        </div>
     </div>
 </div>

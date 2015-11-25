@@ -1,18 +1,182 @@
 <form ng-submit="submit()">
-    <div id="dbname-search" class="panel panel-default" style="text-align: center;position: relative;">
+    <div class="panel panel-default" id="metadata-search" style="text-align: center; position: relative;">
         <span class="glyphicon glyphicon-chevron-right" style="display: none; position: absolute; left: 5px; top: 5px"></span>
         <span class="glyphicon glyphicon-chevron-down" style="display: none; position: absolute; left: 5px; top: 5px"></span>
-        <h4>Choose Source of Commonplace</h4>
-        <ul class="nav nav-tabs nav-justified hiding-element">
-          <li role="presentation" ng-repeat="db in main.webConfig.databases" ng-class="{'active': dbActive == db.dbname}" ng-click="setDb(db.dbname)">
-              <a href="">{{ db.label }}</a>
-              <p style="text-align: justify; padding: 10px 10px 0px 10px;" ng-if="dbActive == db.dbname && description">
-                  {{ db.description }}
-              </p>
-          </li>
-        </ul>
+        <h4>Search all Shared Passages</h4>
+        <div class="row hiding-element" style="margin: 0">
+            <div style="position: absolute; left: 50%; transform: translate(-50%,150%); z-index: 10;">
+                <h1 style="margin-left: -20px">=></h1>
+            </div>
+            <div class="col-xs-12 col-sm-6">
+                <div class="row panel panel-default" style="margin-right: 35px">
+                    <h5>
+                        <b>Source Passages</b>
+                    </h5>
+                    <div class="col-xs-12">
+                        <div class="row search-field">
+                            <div class="col-xs-12 col-sm-3">
+                                Inside passages:
+                            </div>
+                            <div class="col-xs-12 col-sm-9">
+                                <input class="form-control" ng-model="main.formData.sourcematchcontext" placeholder="e.g., vertu" type="text">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xs-12">
+                        <div class="row search-field">
+                            <div class="col-xs-12 col-sm-3">
+                                Author:
+                            </div>
+                            <div class="col-xs-12 col-sm-9">
+                                <input class="form-control" ng-model="main.formData.sourceauthor" placeholder="e.g., Shakespeare" type="text">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xs-12">
+                        <div class="row search-field">
+                            <div class="col-xs-12 col-sm-3">
+                                Title:
+                            </div>
+                            <div class="col-xs-12 col-sm-9">
+                                <input class="form-control" ng-model="main.formData.sourcetitle" placeholder="e.g., Hamlet" type="text">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xs-12">
+                        <div class="row search-field">
+                            <div class="col-xs-12 col-sm-3">
+                                Date:
+                            </div>
+                            <div class="col-xs-12 col-sm-9">
+                                <input class="form-control" ng-model="main.formData.sourcedate" placeholder="e.g., 1728" type="text">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xs-12">
+                        <div class="row search-field">
+                            <div class="col-xs-12 col-sm-3">
+                                Match Size:
+                            </div>
+                            <div class="col-xs-12 col-sm-9">
+                                <input class="form-control" ng-model="main.formData.sourcematchsize" placeholder="e.g., 10-100" type="text">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-12 col-sm-6">
+                <div class="row panel panel-default" style="margin-left: 10px">
+                    <h5>
+                        <b>Target Passages</b>
+                    </h5>
+                    <div class="col-xs-12">
+                        <div class="row search-field">
+                            <div class="col-xs-12 col-sm-3">
+                                Inside passages:
+                            </div>
+                            <div class="col-xs-12 col-sm-9">
+                                <input class="form-control" ng-model="main.formData.targetmatchcontext" placeholder="e.g., vertu" type="text">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xs-12">
+                        <div class="row search-field">
+                            <div class="col-xs-12 col-sm-3">
+                                Author:
+                            </div>
+                            <div class="col-xs-12 col-sm-9">
+                                <input class="form-control" ng-model="main.formData.targetauthor" placeholder="e.g., Shakespeare" type="text">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xs-12">
+                        <div class="row search-field">
+                            <div class="col-xs-12 col-sm-3">
+                                Title:
+                            </div>
+                            <div class="col-xs-12 col-sm-9">
+                                <input class="form-control" ng-model="main.formData.targettitle" placeholder="e.g., Hamlet" type="text">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xs-12">
+                        <div class="row search-field">
+                            <div class="col-xs-12 col-sm-3">
+                                Date:
+                            </div>
+                            <div class="col-xs-12 col-sm-9">
+                                <input class="form-control" ng-model="main.formData.targetdate" placeholder="e.g., 1728" type="text">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row hiding-element">
+            <div class="col-xs-12 col-sm-10">
+                <div style="text-align: justify !important;">
+                    <span class="exclamation-point">&#33;</span>
+                    <a tabindex="0" role="button" data-toggle="popover" data-html="true" data-trigger="focus" title="Query Syntax" data-content="<p>For multiple-term queries, you need to separate words with the
+                    <b>AND</b> or <b>OR</b> operator (<b>&</b> and <b>|</b> work too).
+                    <br>Example: <tt>liberty AND people</tt></p>
+                    <p>
+                        You can also negate a match by prepending <b>NOT</b> (or <b>!</b>) before the word.
+                        <br>Example: <tt>liberty AND NOT people</tt>
+                    </p>">Important note about searching</a>
+                </div>
+                <div class="row search-field">
+                    <div class="col-xs-6">
+                        Sort results by:
+                        <div class="dropdown" style="display: inline">
+                            <button aria-expanded="true" aria-haspopup="true" class="btn btn-default dropdown-toggle" data-toggle="dropdown" id="dropdownMenu1" type="button">
+                                {{ sorting }}
+                                <span class="caret"></span>
+                            </button>
+                            <ul aria-labelledby="dropdownMenu1" class="dropdown-menu">
+                                <li ng-click="selectSorting(1)">
+                                    <a href="">Target date, author</a>
+                                </li>
+                                <li ng-click="selectSorting(2)">
+                                    <a href="">Source date, author</a>
+                                </li>
+                                <li ng-click="selectSorting(3)">
+                                    <a href="">Target author</a>
+                                </li>
+                                <li ng-click="selectSorting(4)">
+                                    <a href="">Source author</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-xs-6">
+                        <input ng-model="main.formData.duplicates" ng-true-value="'ignore'" type="checkbox">&nbsp;Ignore matches from duplicate works
+                        <br><input ng-model="main.formData.bible" ng-true-value="'ignore'" type="checkbox">&nbsp;Ignore Bible quotes
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-12 col-sm-2">
+                <div class="search-field" ng-if="!hideForm">
+                    <button class="btn btn-primary pull-right" type="submit">Search</button>
+                </div>
+            </div>
+        </div>
     </div>
-    <div id="section-container" class="panel panel-default" style="text-align: center;position: relative">
+    <div class="panel panel-default" id="fulltext-search" style="text-align: center;position: relative;">
+        <span class="glyphicon glyphicon-chevron-right" style="display: none; position: absolute; left: 5px; top: 5px"></span>
+        <span class="glyphicon glyphicon-chevron-down" style="display: none; position: absolute; left: 5px; top: 5px"></span>
+        <h4>Search inside Commonplaces: INACTIVE</h4>
+        <div class="row hiding-element">
+            <div class="col-xs-12 col-sm-offset-2 col-sm-8">
+                <div class="input-group">
+                    <input class="form-control" ng-model="fulltext.passage" placeholder="e.g., vertu" type="text">
+                    <span class="input-group-btn">
+                        <button class="btn btn-primary" disabled="disabled" type="submit">Search</button>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="panel panel-default" id="section-container" style="text-align: center;position: relative">
         <span class="glyphicon glyphicon-chevron-right" style="display: none; position: absolute; left: 5px; top: 5px"></span>
         <span class="glyphicon glyphicon-chevron-down" style="display: none; position: absolute; left: 5px; top: 5px"></span>
         <h4>Explore Commonplaces by Subject</h4>
@@ -40,128 +204,6 @@
                     <li>Third section</li>
                     <li>Fourth section</li>
                 </ul>
-            </div>
-        </div>
-    </div>
-    <div id="fulltext-search" class="panel panel-default" style="text-align: center;position: relative;">
-        <span class="glyphicon glyphicon-chevron-right" style="display: none; position: absolute; left: 5px; top: 5px"></span>
-        <span class="glyphicon glyphicon-chevron-down" style="display: none; position: absolute; left: 5px; top: 5px"></span>
-        <h4>Search inside Commonplaces</h4>
-        <div class="row hiding-element">
-            <div class="col-xs-12 col-sm-offset-2 col-sm-8">
-                <div class="input-group">
-                    <input class="form-control" ng-model="fulltext.passage" type="text" placeholder="e.g., vertu">
-                    <span class="input-group-btn">
-                        <button class="btn btn-primary inactive" type="submit">Search</button>
-                     </span>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div id="metadata-search" class="panel panel-default" style="text-align: center; position: relative;">
-        <span class="glyphicon glyphicon-chevron-right" style="display: none; position: absolute; left: 5px; top: 5px"></span>
-        <span class="glyphicon glyphicon-chevron-down" style="display: none; position: absolute; left: 5px; top: 5px"></span>
-        <h4>Search all Shared Passages</h4>
-        <div class="row hiding-element" style="margin: 0">
-            <div style="position: absolute; left: 50%; transform: translate(-50%,150%); z-index: 10;">
-                <h1 style="margin-left: -20px">=></h1>
-            </div>
-            <div class="col-xs-12 col-sm-6">
-                <div class="row panel panel-default" style="margin-right: 35px">
-                    <h5><b>Source Passages</b></h5>
-                    <div class="col-xs-12">
-                        <div class="row search-field">
-                            <div class="col-xs-12 col-sm-3">
-                                Inside passages:
-                            </div>
-                            <div class="col-xs-12 col-sm-9">
-                                <input class="form-control" ng-model="formData.sourcematchcontext" type="text" placeholder="e.g., vertu">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-xs-12">
-                        <div class="row search-field">
-                            <div class="col-xs-12 col-sm-3">
-                                Author:
-                            </div>
-                            <div class="col-xs-12 col-sm-9">
-                                <input class="form-control" ng-model="formData.sourceauthor" type="text" placeholder="e.g., Shakespeare">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-xs-12">
-                        <div class="row search-field">
-                            <div class="col-xs-12 col-sm-3">
-                                Title:
-                            </div>
-                            <div class="col-xs-12 col-sm-9">
-                                <input class="form-control" ng-model="formData.sourcetitle" type="text" placeholder="e.g., Hamlet">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-xs-12">
-                        <div class="row search-field">
-                            <div class="col-xs-12 col-sm-3">
-                                Date:
-                            </div>
-                            <div class="col-xs-12 col-sm-9">
-                                <input class="form-control" ng-model="formData.sourcedate" type="text" placeholder="e.g., 1728">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xs-12 col-sm-6">
-                <div class="row panel panel-default" style="margin-left: 10px">
-                    <h5><b>Target Passages</b></h5>
-                    <div class="col-xs-12">
-                        <div class="row search-field">
-                            <div class="col-xs-12 col-sm-3">
-                                Inside passages:
-                            </div>
-                            <div class="col-xs-12 col-sm-9">
-                                <input class="form-control" ng-model="formData.targetmatchcontext" type="text" placeholder="e.g., vertu">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-xs-12">
-                        <div class="row search-field">
-                            <div class="col-xs-12 col-sm-3">
-                                Author:
-                            </div>
-                            <div class="col-xs-12 col-sm-9">
-                                <input class="form-control" ng-model="formData.targetauthor" type="text" placeholder="e.g., Shakespeare">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-xs-12">
-                        <div class="row search-field">
-                            <div class="col-xs-12 col-sm-3">
-                                Title:
-                            </div>
-                            <div class="col-xs-12 col-sm-9">
-                                <input class="form-control" ng-model="formData.targettitle" type="text" placeholder="e.g., Hamlet">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-xs-12">
-                        <div class="row search-field">
-                            <div class="col-xs-12 col-sm-3">
-                                Date:
-                            </div>
-                            <div class="col-xs-12 col-sm-9">
-                                <input class="form-control" ng-model="formData.targetdate" type="text" placeholder="e.g., 1728">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="row hiding-element">
-            <div class="col-xs-12 col-sm-offset-6 col-sm-6">
-                <div class="search-field" ng-if="!hideForm">
-                    <button class="btn btn-primary pull-right" type="submit">Search</button>
-                </div>
             </div>
         </div>
     </div>

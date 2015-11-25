@@ -4,7 +4,7 @@
         .module('DiggingApp')
         .directive('searchForm', searchForm);
 
-    function searchForm($location, URL) {
+    function searchForm($location, $routeParams, $log, URL, sortKeys) {
         var hideLandingPage = function() {
             angular.element('.hiding-element').each(function() {
                 hideElement(angular.element(this));
@@ -76,17 +76,22 @@
         return {
             templateUrl: 'components/searchForm/searchForm.html',
             link: function(scope) {
-                scope.description = false;
-                scope.dbActive = scope.main.webConfig.databases[0].dbname;
-                scope.formData = $location.search();
+                angular.element('[data-toggle="popover"]').popover();
+                scope.sorting = "Target date, author";
                 scope.submit = function() {
                     scope.results = [];
-                    var urlString = URL.objectToString(scope.formData);
+                    if (scope.main.formData.duplicates != "ignore") {
+                        delete scope.main.formData.duplicates;
+                    }
+                    if (scope.main.formData.bible != "ignore") {
+                        delete scope.main.formData.bible;
+                    }
+                    var urlString = URL.objectToString(scope.main.formData);
                     if (urlString.length === 0) {
                         alert("You haven't searched for anything, please fill in one of the search boxes");
                     } else {
                         hideLandingPage();
-                        $location.url('/query/' + scope.dbActive + '/search?' + urlString)
+                        $location.url('/query/' + scope.main.dbActive + '/search?' + urlString)
                     }
                 };
                 scope.toggleForm = function() {
@@ -96,6 +101,10 @@
                         hideLandingPage();
                     }
                 }
+                scope.selectSorting = function(sortId) {
+                    scope.main.formData.sorting = sortId;
+                    scope.sorting = sortKeys.keys[sortId].label;
+                }
                 scope.$watch("main.hideSearchForm", function(currentValue) {
                     if (currentValue) {
                         hideLandingPage();
@@ -103,11 +112,6 @@
                         showLandingPage();
                     }
                 });
-                scope.setDb = function(dbname) {
-                    scope.dbActive = dbname;
-                    scope.description = true;
-                    $location.url(dbname);
-                }
             }
         }
     }

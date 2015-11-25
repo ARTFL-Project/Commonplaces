@@ -1,8 +1,10 @@
 /**
- * angular-spinner version 0.6.2
+ * angular-spinner version 0.8.0
  * License: MIT.
  * Copyright (C) 2013, 2014, 2015, Uri Shaked and contributors.
  */
+
+'format amd';
 
 (function (root) {
 	'use strict';
@@ -12,16 +14,22 @@
 		return angular
 			.module('angularSpinner', [])
 
+			.constant('SpinJSSpinner', Spinner)
+
 			.provider('usSpinnerConfig', function () {
-				var _config = {};
+				var _config = {}, _themes = {};
 
 				return {
 					setDefaults: function (config) {
 						_config = config || _config;
 					},
+					setTheme: function(name, config) {
+						_themes[name] = config;
+					},
 					$get: function () {
 						return {
-							config: _config
+							config: _config,
+							themes: _themes
 						};
 					}
 				};
@@ -41,12 +49,10 @@
 				return config;
 			}])
 
-			.directive('usSpinner', ['$window', 'usSpinnerConfig', function ($window, usSpinnerConfig) {
+			.directive('usSpinner', ['SpinJSSpinner', 'usSpinnerConfig', function (SpinJSSpinner, usSpinnerConfig) {
 				return {
 					scope: true,
 					link: function (scope, element, attr) {
-						var SpinnerConstructor = Spinner || $window.Spinner;
-
 						scope.spinner = null;
 
 						scope.key = angular.isDefined(attr.spinnerKey) ? attr.spinnerKey : false;
@@ -75,18 +81,27 @@
 						scope.$watch(attr.usSpinner, function (options) {
 							stopSpinner();
 
-							options = options || {};
-							for (var property in usSpinnerConfig.config) {
-							    if (options[property] === undefined) {
-							        options[property] = usSpinnerConfig.config[property];
-							    }
-							}
+							// order of precedence: element options, theme, defaults.
+							options = angular.extend(
+								usSpinnerConfig.config,
+								usSpinnerConfig.themes[attr.spinnerTheme],
+								options);
 
-							scope.spinner = new SpinnerConstructor(options);
-							if (!scope.key || scope.startActive) {
+							scope.spinner = new SpinJSSpinner(options);
+							if ((!scope.key || scope.startActive) && !attr.spinnerOn) {
 								scope.spinner.spin(element[0]);
 							}
 						}, true);
+
+						if (attr.spinnerOn) {
+							scope.$watch(attr.spinnerOn, function (spin) {
+								if (spin) {
+									scope.spin();
+								} else {
+									scope.stop();
+								}
+							});
+						}
 
 						scope.$on('us-spinner:spin', function (event, key) {
 							if (key === scope.key) {
@@ -109,11 +124,14 @@
 			}]);
 	}
 
-	if (typeof define === 'function' && define.amd) {
+    if ((typeof module === 'object') && module.exports) {
+		/* CommonJS module */
+		module.exports = factory(require('angular'), require('spin.js'));
+	} else if (typeof define === 'function' && define.amd) {
 		/* AMD module */
 		define(['angular', 'spin'], factory);
 	} else {
 		/* Browser global */
-		factory(root.angular);
+		factory(root.angular, root.Spinner);
 	}
-}(window));
+}(this));

@@ -7,7 +7,6 @@ import (
 	"net/url"
 	"os"
 	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -40,13 +39,13 @@ type results struct {
 
 type fullTextResultObject struct {
 	AlignmentID        *int32  `json:"alignmentID"`
-	Author             *string `json:"author"`
-	Title              *string `json:"title"`
-	Date               *int32  `json:"date"`
-	LeftContext        *string `json:"leftContext"`
-	MatchContext       *string `json:"matchContext"`
-	RightContext       *string `json:"rightContext"`
-	ContextLink        *string `json:"contextLink"`
+	Author             *string `json:"sourceauthor"`
+	Title              *string `json:"sourcetitle"`
+	Date               *int32  `json:"sourcedate"`
+	LeftContext        *string `json:"sourceleftContext"`
+	MatchContext       *string `json:"sourcematchContext"`
+	RightContext       *string `json:"sourcerightContext"`
+	ContextLink        *string `json:"sourcecontextLink"`
 	TargetAuthor       *string `json:"targetAuthor"`
 	TargetTitle        *string `json:"targetTitle"`
 	TargetDate         *int32  `json:"targetDate"`
@@ -58,7 +57,7 @@ type fullTextResultObject struct {
 	PassageIDCount     *int32  `json:"passageIDCount"`
 }
 
-type FullTextResults struct {
+type fullTextResults struct {
 	Count        int64                  `json:"count"`
 	FullTextList []fullTextResultObject `json:"fullList"`
 }
@@ -66,20 +65,6 @@ type FullTextResults struct {
 type urlKeyValue struct {
 	Key   string
 	Value []string
-}
-
-type byDate []resultObject
-
-func (slice byDate) Len() int {
-	return len(slice)
-}
-
-func (slice byDate) Less(i, j int) bool {
-	return slice[i].Date < slice[j].Date
-}
-
-func (slice byDate) Swap(i, j int) {
-	slice[i], slice[j] = slice[j], slice[i]
 }
 
 var webConfig = databaseConfig()
@@ -96,6 +81,33 @@ var parameterMap = map[string]string{
 	"targetmatchcontext": "targetmatchcontext_fulltext",
 }
 
+var sortKeyMap = map[string][]string{
+	"1": []string{"targetdate", "targetauthor"},
+	"2": []string{"sourcedate", "sourceauthor"},
+	"3": []string{"targetauthor"},
+	"4": []string{"targetauthor"},
+}
+
+var queryOperatorSlice = map[string]string{
+	" AND ": " & ",
+	" OR ":  " | ",
+	"NOT ":  " ! ",
+}
+
+type byDate []resultObject
+
+func (slice byDate) Len() int {
+	return len(slice)
+}
+
+func (slice byDate) Less(i, j int) bool {
+	return slice[i].Date < slice[j].Date
+}
+
+func (slice byDate) Swap(i, j int) {
+	slice[i], slice[j] = slice[j], slice[i]
+}
+
 func createConnPool() *pgx.ConnPool {
 	defaultConnConfig.Host = "localhost"
 	defaultConnConfig.Database = "digging"
@@ -107,6 +119,13 @@ func createConnPool() *pgx.ConnPool {
 		fmt.Printf("Unable to create connection pool: %v", err)
 	}
 	return pool
+}
+
+func parseQuery(value string) string {
+	for operator, symbol := range queryOperatorSlice {
+		value = strings.Replace(value, operator, symbol, -1)
+	}
+	return value
 }
 
 func findCommonPlaces(c *gin.Context) {
@@ -206,56 +225,74 @@ func fullTextQuery(c *gin.Context) {
 	dbname := c.Param("dbname")
 	delete(queryStringMap, "dbname")
 	var language string
+	var duplicatesID string
 	for _, value := range webConfig.Databases {
 		if dbname == value["dbname"] {
 			language = value["language"]
+			duplicatesID = value["duplicatesID"]
 			break
 		}
 	}
 
 	fmt.Println(queryStringMap)
 	query := "select alignment_id, sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcecontextlink, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetcontextlink, passageident, passageidentcount from " + dbname + " where "
+	sorting := strings.Join(sortKeyMap[queryStringMap["sorting"][0]], ", ")
+	currentPositionParam := make(map[string][]string)
 	var params []string
 	var values []interface{}
-	start := 0
-	if _, ok := queryStringMap["start"]; ok {
-		start, _ = strconv.Atoi(queryStringMap["start"][0])
-		delete(queryStringMap, "start")
-	}
+	continued := false
 	for param, v := range queryStringMap {
 		for _, value := range v {
-			if value != "" && value != "dbname" {
-				var paramValue string
-				if _, ok := parameterMap[param]; ok {
-					param = parameterMap[param]
-					paramValue = fmt.Sprintf("%s @@ to_tsquery('%s', '%s')", param, language, value)
-				} else {
-					dateRange := strings.Split(value, "-")
-					if len(dateRange) == 2 {
-						paramValue = fmt.Sprintf("%s between %s and %s", param, dateRange[0], dateRange[1])
+			if value != "" {
+				if param != "sorting" && !strings.HasPrefix(param, "last_") {
+					var paramValue string
+					if param == "duplicates" {
+						paramValue = fmt.Sprintf("passageident!=%s", duplicatesID)
+					} else if param == "bible" {
+						paramValue = fmt.Sprintf("authorident!=1")
+					} else if _, ok := parameterMap[param]; ok {
+						param = parameterMap[param]
+						value = parseQuery(value)
+						paramValue = fmt.Sprintf("%s @@ to_tsquery('%s', '%s')", param, language, value)
 					} else {
-						paramValue = fmt.Sprintf("%s='%s'", param, value)
+						dateRange := strings.Split(value, "-")
+						if len(dateRange) == 2 {
+							paramValue = fmt.Sprintf("%s between %s and %s", param, dateRange[0], dateRange[1])
+						} else {
+							paramValue = fmt.Sprintf("%s='%s'", param, value)
+						}
 					}
+					params = append(params, paramValue)
+					values = append(values, value)
+				} else if strings.HasPrefix(param, "last_") {
+					continued = true
+					field := strings.Replace(param, "last_", "", 1)
+					currentPositionParam["fields"] = append(currentPositionParam["fields"], field)
+					currentPositionParam["values"] = append(currentPositionParam["values"], "'"+value+"'")
 				}
-				params = append(params, paramValue)
-				values = append(values, value)
 			}
 		}
 	}
 	query += strings.Join(params, " and ")
-	query += fmt.Sprintf(" and alignment_id >= %d limit 20", start)
+	if !continued {
+		query += fmt.Sprintf(" order by %s limit 20", sorting)
+	} else {
+		fields := strings.Join(currentPositionParam["fields"], ", ")
+		values := strings.Join(currentPositionParam["values"], ", ")
+		query += fmt.Sprintf(" and (%s) > (%s) order by %s limit 40", fields, values, sorting)
+	}
 	fmt.Printf("query is:%s\n", query)
 	fmt.Println(values)
 	rows, err := pool.Query(query)
 	if err != nil {
 		var emptyResults []fullTextResultObject
 		fmt.Println(err)
-		c.JSON(200, FullTextResults{0, emptyResults})
+		c.JSON(200, fullTextResults{0, emptyResults})
 	}
 
 	defer rows.Close()
 
-	var results FullTextResults
+	var results fullTextResults
 	for rows.Next() {
 		var alignmentID int32
 		var author string
@@ -279,20 +316,21 @@ func fullTextQuery(c *gin.Context) {
 			var emptyResults []fullTextResultObject
 			fmt.Println("retrieving results of query failed")
 			fmt.Println(err)
-			c.JSON(200, FullTextResults{0, emptyResults})
+			c.JSON(200, fullTextResults{0, emptyResults})
 		}
 		sourceResults := fullTextResultObject{&alignmentID, &author, &title, &date, &leftContext, &matchContext, &rightContext, &contextLink, &targetAuthor, &targetTitle, &targetDate, &targetLeftContext, &targetMatchContext, &targetRightContext, &targetContextLink, &passageID, &passageIDCount}
 		results.FullTextList = append(results.FullTextList, sourceResults)
 	}
 
-	countQuery := "select count(*) from eebo where " + strings.Join(params, " and ")
-	fmt.Println(countQuery)
-	countingErr := pool.QueryRow(countQuery).Scan(&results.Count)
+	// countQuery := "select count(*) from eebo where " + strings.Join(params, " and ")
+	// fmt.Println(countQuery)
+	// countingErr := pool.QueryRow(countQuery).Scan(&results.Count)
+	results.Count = 0
 	// var newCount int32
 	// countingErr := countRow.Scan(&results.Count)
-	if countingErr != nil {
-		fmt.Println(countingErr)
-	}
+	// if countingErr != nil {
+	// 	fmt.Println(countingErr)
+	// }
 	c.JSON(200, results)
 }
 

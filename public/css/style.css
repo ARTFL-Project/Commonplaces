@@ -74,10 +74,10 @@ a:hover {
   color: rgb(128, 0, 0) !important;
   text-decoration: none;
 }
-#landing-page-container {
+/*#landing-page-container {
   position: absolute;
-}
-#dbname-search, #fulltext-search, #metadata-search, #section-container {
+}*/
+#fulltext-search, #metadata-search, #section-container {
   /*box-shadow: 1px 1px 5px #555;*/
   box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
 }
@@ -104,7 +104,6 @@ form h4, #section-container h4 {
   text-align: left;
 }
 #results, #full-text-container {
-  margin-top: 200px;
   transition: all ease-out 300ms;
 }
 #results.down {
@@ -126,9 +125,6 @@ form h4, #section-container h4 {
   background-color: rgb(21, 95, 131);
 }
 #landing-page-container {
-  top: 50px;
-  left: 15px;
-  right: 15px;
   transition: all ease-in-out 300ms;
   z-index: 10;
 }
@@ -231,15 +227,21 @@ form h4, #section-container h4 {
   font-weight: 700;
 }
 .exclamation-point {
-  padding: 6px;
+  padding: 4px 6px;
   background-color: rgba(44, 170, 226, 1);
   font-size: 1.3em;
   font-weight: 700;
 }
 
 /*Header*/
-
 nav > div > div.navbar-header > a {
   font-variant: small-caps;
   font-size: 2em;
+}
+
+#source-selection {
+    text-align: center;
+}
+.popover {
+    max-width: 400px;
 }
