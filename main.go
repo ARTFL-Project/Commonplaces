@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -39,13 +40,13 @@ type results struct {
 
 type fullTextResultObject struct {
 	AlignmentID        *int32  `json:"alignmentID"`
-	Author             *string `json:"sourceauthor"`
-	Title              *string `json:"sourcetitle"`
-	Date               *int32  `json:"sourcedate"`
-	LeftContext        *string `json:"sourceleftContext"`
-	MatchContext       *string `json:"sourcematchContext"`
-	RightContext       *string `json:"sourcerightContext"`
-	ContextLink        *string `json:"sourcecontextLink"`
+	Author             *string `json:"sourceAuthor"`
+	Title              *string `json:"sourceTitle"`
+	Date               *int32  `json:"sourceDate"`
+	LeftContext        *string `json:"sourceLeftContext"`
+	MatchContext       *string `json:"sourceMatchContext"`
+	RightContext       *string `json:"sourceRightContext"`
+	ContextLink        *string `json:"sourceContextLink"`
 	TargetAuthor       *string `json:"targetAuthor"`
 	TargetTitle        *string `json:"targetTitle"`
 	TargetDate         *int32  `json:"targetDate"`
@@ -58,7 +59,6 @@ type fullTextResultObject struct {
 }
 
 type fullTextResults struct {
-	Count        int64                  `json:"count"`
 	FullTextList []fullTextResultObject `json:"fullList"`
 }
 
@@ -113,7 +113,9 @@ func createConnPool() *pgx.ConnPool {
 	defaultConnConfig.Database = "digging"
 	defaultConnConfig.User = "postgres"
 	defaultConnConfig.Password = "***REMOVED***"
-	config := pgx.ConnPoolConfig{ConnConfig: defaultConnConfig, MaxConnections: 10}
+	defaultConnConfig.RuntimeParams = make(map[string]string)
+	defaultConnConfig.RuntimeParams["statement_timeout"] = "40000"
+	config := pgx.ConnPoolConfig{ConnConfig: defaultConnConfig, MaxConnections: 50}
 	pool, err := pgx.NewConnPool(config)
 	if err != nil {
 		fmt.Printf("Unable to create connection pool: %v", err)
@@ -237,7 +239,7 @@ func fullTextQuery(c *gin.Context) {
 	fmt.Println(queryStringMap)
 	query := "select alignment_id, sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcecontextlink, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetcontextlink, passageident, passageidentcount from " + dbname + " where "
 	sorting := strings.Join(sortKeyMap[queryStringMap["sorting"][0]], ", ")
-	currentPositionParam := make(map[string][]string)
+	currentPositionParam := make(map[string][]interface{})
 	var params []string
 	var values []interface{}
 	continued := false
@@ -268,26 +270,38 @@ func fullTextQuery(c *gin.Context) {
 					continued = true
 					field := strings.Replace(param, "last_", "", 1)
 					currentPositionParam["fields"] = append(currentPositionParam["fields"], field)
-					currentPositionParam["values"] = append(currentPositionParam["values"], "'"+value+"'")
+					currentPositionParam["values"] = append(currentPositionParam["values"], value)
 				}
 			}
 		}
 	}
 	query += strings.Join(params, " and ")
+	var err error
+	var rows *pgx.Rows
 	if !continued {
 		query += fmt.Sprintf(" order by %s limit 20", sorting)
+		fmt.Printf("query is:%s\n", query)
+		rows, err = pool.Query(query)
 	} else {
-		fields := strings.Join(currentPositionParam["fields"], ", ")
-		values := strings.Join(currentPositionParam["values"], ", ")
-		query += fmt.Sprintf(" and (%s) > (%s) order by %s limit 40", fields, values, sorting)
+		var fieldList []string
+		for _, value := range currentPositionParam["fields"] {
+			fieldList = append(fieldList, value.(string))
+		}
+		fields := strings.Join(fieldList, ", ")
+		var placeholders []string
+		for pos := range currentPositionParam["values"] {
+			placeholder := "$" + strconv.Itoa(pos+1)
+			placeholders = append(placeholders, placeholder)
+		}
+		placeholderString := strings.Join(placeholders, ", ")
+		query += fmt.Sprintf(" and (%s) > (%s) order by %s limit 40", fields, placeholderString, sorting)
+		fmt.Printf("query is:%s\n", query)
+		rows, err = pool.Query(query, currentPositionParam["values"]...)
 	}
-	fmt.Printf("query is:%s\n", query)
-	fmt.Println(values)
-	rows, err := pool.Query(query)
 	if err != nil {
 		var emptyResults []fullTextResultObject
 		fmt.Println(err)
-		c.JSON(200, fullTextResults{0, emptyResults})
+		c.JSON(200, fullTextResults{emptyResults})
 	}
 
 	defer rows.Close()
@@ -316,22 +330,18 @@ func fullTextQuery(c *gin.Context) {
 			var emptyResults []fullTextResultObject
 			fmt.Println("retrieving results of query failed")
 			fmt.Println(err)
-			c.JSON(200, fullTextResults{0, emptyResults})
+			c.JSON(200, fullTextResults{emptyResults})
 		}
 		sourceResults := fullTextResultObject{&alignmentID, &author, &title, &date, &leftContext, &matchContext, &rightContext, &contextLink, &targetAuthor, &targetTitle, &targetDate, &targetLeftContext, &targetMatchContext, &targetRightContext, &targetContextLink, &passageID, &passageIDCount}
 		results.FullTextList = append(results.FullTextList, sourceResults)
 	}
 
-	// countQuery := "select count(*) from eebo where " + strings.Join(params, " and ")
-	// fmt.Println(countQuery)
-	// countingErr := pool.QueryRow(countQuery).Scan(&results.Count)
-	results.Count = 0
-	// var newCount int32
-	// countingErr := countRow.Scan(&results.Count)
-	// if countingErr != nil {
-	// 	fmt.Println(countingErr)
-	// }
-	c.JSON(200, results)
+	if len(results.FullTextList) == 0 {
+		var emptyResults []fullTextResultObject
+		c.JSON(200, fullTextResults{emptyResults})
+	} else {
+		c.JSON(200, results)
+	}
 }
 
 func exportConfig(c *gin.Context) {
