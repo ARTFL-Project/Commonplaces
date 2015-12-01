@@ -1,0 +1,13 @@
+<div id="source-selection">
+    <h4 style="margin-top: 0;">
+        <span class="hiding-element">Choose Source of Commonplace</span>
+    </h4>
+    <ul class="nav nav-tabs nav-justified">
+        <li ng-class="{'active': main.dbActive == db.dbname}" ng-click="setDb(db.dbname)" ng-repeat="db in main.webConfig.databases" role="presentation">
+            <a href="">{{ db.label }}</a>
+            <p ng-if="main.dbActive == db.dbname && main.description" style="text-align: justify; padding: 10px 10px 0px 10px;">
+                {{ db.description }}
+            </p>
+        </li>
+    </ul>
+</div>
