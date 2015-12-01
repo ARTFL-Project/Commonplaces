@@ -17,6 +17,11 @@
 				controller: 'FullTextController',
 				controllerAs: 'fullText'
 			}).
+            when('/topic/:dbname/:topicID', {
+                templateUrl: 'components/topicView/topicView.html'
+                // controller: 'TopicViewController',
+                // controllerAs: 'topicView'
+            }).
 			otherwise({
 			  redirectTo: '/'
 			});

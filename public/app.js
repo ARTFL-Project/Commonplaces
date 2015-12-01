@@ -16,7 +16,7 @@
             vm.formData = {};
             vm.formData.duplicates = "ignore";
             vm.formData.sorting = 1;
-            vm.dbActive = vm.webConfig.databases[0].dbname;
+            vm.dbActive = vm.webConfig.databases[1].dbname;
 
             vm.openLandingPage = function() {
                 if (vm.hideSearchForm) {

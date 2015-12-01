@@ -15,9 +15,9 @@ import (
 )
 
 type config struct {
-	Port      string              `json:"port"`
-	Databases []map[string]string `json:"databases"`
-	Debug     bool                `json:"debug"`
+	Port      string                   `json:"port"`
+	Databases []map[string]interface{} `json:"databases"`
+	Debug     bool                     `json:"debug"`
 }
 
 type resultObject struct {
@@ -60,6 +60,17 @@ type fullTextResultObject struct {
 
 type fullTextResults struct {
 	FullTextList []fullTextResultObject `json:"fullList"`
+}
+
+type topicResults struct {
+	Author       *string  `json:"sourceAuthor"`
+	Title        *string  `json:"sourceTitle"`
+	Date         *int32   `json:"sourceDate"`
+	LeftContext  *string  `json:"sourceLeftContext"`
+	MatchContext *string  `json:"sourceMatchContext"`
+	RightContext *string  `json:"sourceRightContext"`
+	PassageIdent *int32   `json:"passageIDCount"`
+	TopicWeight  *float32 `json:"topicWeight"`
 }
 
 type urlKeyValue struct {
@@ -230,8 +241,8 @@ func fullTextQuery(c *gin.Context) {
 	var duplicatesID string
 	for _, value := range webConfig.Databases {
 		if dbname == value["dbname"] {
-			language = value["language"]
-			duplicatesID = value["duplicatesID"]
+			language = value["language"].(string)
+			duplicatesID = value["duplicatesID"].(string)
 			break
 		}
 	}
@@ -344,6 +355,71 @@ func fullTextQuery(c *gin.Context) {
 	}
 }
 
+func getTopic(c *gin.Context) {
+	dbname := c.Param("dbname") + "_topics"
+	topicID := c.Param("topicID")
+	topic, _ := strconv.Atoi(topicID)
+	lastTopicWeightParam := c.Query("topicWeight")
+	var lastTopicWeight float64
+	var firstQuery bool
+	if lastTopicWeightParam != "" {
+		lastTopicWeight, _ = strconv.ParseFloat(lastTopicWeightParam, 32)
+		firstQuery = false
+	} else {
+		firstQuery = true
+	}
+	fmt.Println(firstQuery)
+	query := ""
+	var queryParams []interface{}
+	if firstQuery {
+		query += "select sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, passageident, topic_weight from " + dbname + " where topic=$1 order by topic_weight desc limit 50"
+		queryParams = append(queryParams, topic)
+		fmt.Printf("query is:%s %d\n", query, topic)
+	} else {
+		query += "select sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, passageident, topic_weight from " + dbname + " where topic=$1 and topic_weight < $2 order by topic_weight desc limit 100"
+		queryParams = append(queryParams, topic, lastTopicWeight)
+		fmt.Printf("query is:%s %d %f\n", query, topic, lastTopicWeight)
+	}
+	rows, err := pool.Query(query, queryParams...)
+
+	fmt.Println(topic)
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(200, results{})
+	}
+
+	defer rows.Close()
+
+	var topicPassage []topicResults
+	for rows.Next() {
+		var author string
+		var title string
+		var date int32
+		var leftContext string
+		var rightContext string
+		var matchContext string
+		var passageID int32
+		var topicWeight float32
+		scanErr := rows.Scan(&author, &title, &date, &leftContext, &matchContext, &rightContext, &passageID, &topicWeight)
+		if scanErr != nil {
+			fmt.Println(scanErr)
+		}
+		topicPassage = append(topicPassage, topicResults{&author, &title, &date, &leftContext, &matchContext, &rightContext, &passageID, &topicWeight})
+	}
+	if len(topicPassage) == 0 {
+		var emptyResults []topicResults
+		c.JSON(200, emptyResults)
+	} else {
+		c.JSON(200, topicPassage)
+	}
+}
+
+// func searchInCommonplace(c *gin.Context) {
+// 	dbname := c.Param("dbname") + "_topics"
+// 	queryTerms := c.Query("queryCommonplaces")
+//
+// }
+
 func exportConfig(c *gin.Context) {
 	c.JSON(200, webConfig)
 }
@@ -387,9 +463,11 @@ func main() {
 	router.GET("/", index)
 	router.GET("/passage/:dbname/:passageID", index)
 	router.GET("/query/:dbname/search", index)
+	router.GET("/topic/:dbname/:topicID", index)
 	// API calls
 	router.GET("/api/:dbname/commonplaces/:passageID", findCommonPlaces)
 	router.GET("/api/:dbname/fulltext", fullTextQuery)
+	router.GET("/api/:dbname/topic/:topicID", getTopic)
 	// Export config
 	router.GET("/config/config.json", exportConfig)
 

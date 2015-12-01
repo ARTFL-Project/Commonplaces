@@ -245,3 +245,6 @@ nav > div > div.navbar-header > a {
 .popover {
     max-width: 400px;
 }
+#topic-results {
+    padding: 0px 15px;
+}

@@ -1,4 +1,19 @@
 <form ng-submit="submit()">
+    <div class="panel panel-default" id="fulltext-search" style="text-align: center;position: relative;">
+        <span class="glyphicon glyphicon-chevron-right" style="display: none; position: absolute; left: 5px; top: 5px"></span>
+        <span class="glyphicon glyphicon-chevron-down" style="display: none; position: absolute; left: 5px; top: 5px"></span>
+        <h4>Search inside Commonplaces</h4>
+        <div class="row hiding-element">
+            <div class="col-xs-12 col-sm-offset-2 col-sm-8">
+                <div class="input-group">
+                    <input class="form-control" ng-model="fulltext.queryCommonplaces" placeholder="e.g., vertu" type="text">
+                    <span class="input-group-btn">
+                        <button class="btn btn-primary" type="submit">Search</button>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="panel panel-default" id="metadata-search" style="text-align: center; position: relative;">
         <span class="glyphicon glyphicon-chevron-right" style="display: none; position: absolute; left: 5px; top: 5px"></span>
         <span class="glyphicon glyphicon-chevron-down" style="display: none; position: absolute; left: 5px; top: 5px"></span>
@@ -158,52 +173,6 @@
                 <div class="search-field" ng-if="!hideForm">
                     <button class="btn btn-primary pull-right" type="submit">Search</button>
                 </div>
-            </div>
-        </div>
-    </div>
-    <div class="panel panel-default" id="fulltext-search" style="text-align: center;position: relative;">
-        <span class="glyphicon glyphicon-chevron-right" style="display: none; position: absolute; left: 5px; top: 5px"></span>
-        <span class="glyphicon glyphicon-chevron-down" style="display: none; position: absolute; left: 5px; top: 5px"></span>
-        <h4>Search inside Commonplaces: INACTIVE</h4>
-        <div class="row hiding-element">
-            <div class="col-xs-12 col-sm-offset-2 col-sm-8">
-                <div class="input-group">
-                    <input class="form-control" ng-model="fulltext.passage" placeholder="e.g., vertu" type="text">
-                    <span class="input-group-btn">
-                        <button class="btn btn-primary" disabled="disabled" type="submit">Search</button>
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="panel panel-default" id="section-container" style="text-align: center;position: relative">
-        <span class="glyphicon glyphicon-chevron-right" style="display: none; position: absolute; left: 5px; top: 5px"></span>
-        <span class="glyphicon glyphicon-chevron-down" style="display: none; position: absolute; left: 5px; top: 5px"></span>
-        <h4>Explore Commonplaces by Subject</h4>
-        <div class="row hiding-element">
-            <div class="col-xs-12 col-sm-6 col-md-4">
-                <ul class="panel panel-default">
-                    <li>First section</li>
-                    <li>Second section</li>
-                    <li>Third section</li>
-                    <li>Fourth section</li>
-                </ul>
-            </div>
-            <div class="col-xs-12 col-sm-6 col-md-4">
-                <ul class="panel panel-default">
-                    <li>First section</li>
-                    <li>Second section</li>
-                    <li>Third section</li>
-                    <li>Fourth section</li>
-                </ul>
-            </div>
-            <div class="col-xs-12 col-sm-6 col-md-4">
-                <ul class="panel panel-default">
-                    <li>First section</li>
-                    <li>Second section</li>
-                    <li>Third section</li>
-                    <li>Fourth section</li>
-                </ul>
             </div>
         </div>
     </div>
