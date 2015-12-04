@@ -1,0 +1,24 @@
+<div infinite-scroll="addMoreResults()" infinite-scroll-distance="1" infinite-scroll-disabled="loadingData" infinite-scroll-immediate-check="false">
+    <div class="panel panel-default result alignment" ng-repeat="passage in commonplaces | limitTo: displayLimit track by $index">
+        <h5 class="result-number">{{ ::$index + 1}}</h5>
+        <h5>
+            <b>{{ ::passage.author }}</b>,
+            <i>{{ ::passage.title }}</i>&nbsp;
+            <b>[{{ ::passage.date }}]</b>
+        </h5>
+        <p>
+            {{ ::passage.leftContext }}
+            <span class="highlight">
+                {{ ::passage.matchContext }}
+            </span>
+            {{ ::passage.rightContext}}
+        </p>
+        <p>
+            <a href="/passage/{{ main.dbActive }}/{{passage.passageID}}">View all similar passages</a>
+        </p>
+    </div>
+    <div style="text-align: center;" ng-show="loadingData">
+        <h4>Loading data...</h4>
+        <span spinner-key="spinner-2" us-spinner="{radius:25, width:4, length: 16, scale: 0.75, speed: 1.5, fps: 30, top: '35%', color: ['#5B96AD', '#155F83', '#15435F']}"></span>
+    </div>
+</div>
