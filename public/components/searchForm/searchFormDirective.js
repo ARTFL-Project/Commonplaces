@@ -94,6 +94,13 @@
                         $location.url('/query/' + scope.main.dbActive + '/search?' + urlString)
                     }
                 };
+                scope.commonplaceTerms = {};
+                scope.commonplaceSubmit = function() {
+                    hideLandingPage();
+                    var urlString = '/commonplace/' + scope.main.dbActive + '/search?query_terms=' + scope.commonplaceTerms.queryTerms;
+                    $log.debug(urlString);
+                    $location.url(urlString)
+                }
                 scope.toggleForm = function() {
                     if (scope.hideForm) {
                         angular.element('.hiding-element').velocity('slideDown');

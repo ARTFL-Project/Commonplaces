@@ -1,19 +1,22 @@
 <div id="topic-results">
-    <h4 ng-if="debug">{{ wordsInTopic }}</h4>
+    <h4 ng-if="debug"><b>Word distribution:</b> {{ wordsInTopic }}</h4>
     <div infinite-scroll="addMoreResults()" infinite-scroll-distance="1" infinite-scroll-disabled="loadingData" infinite-scroll-immediate-check="false">
         <div class="panel panel-default result alignment" ng-repeat="passage in topicPassages | limitTo: displayLimit track by $index">
             <h5 class="result-number">{{ ::$index + 1}}</h5>
             <h5>
-                <b>{{ ::passage.sourceAuthor }}</b>,
-                <i>{{ ::passage.sourceTitle }}</i>&nbsp;
-                <b>[{{ ::passage.sourceDate }}]</b>
+                <b>{{ ::passage.author }}</b>,
+                <i>{{ ::passage.title }}</i>&nbsp;
+                <b>[{{ ::passage.date }}]</b>
             </h5>
             <p>
-                {{ ::passage.sourceLeftContext }}
+                {{ ::passage.leftContext }}
                 <span class="highlight">
-                    {{ ::passage.sourceMatchContext }}
+                    {{ ::passage.matchContext }}
                 </span>
-                {{ ::passage.sourceRightContext}}
+                {{ ::passage.rightContext}}
+            </p>
+            <p>
+                <a href="/passage/{{ main.dbActive }}/{{passage.passageID}}">View all similar passages</a>
             </p>
         </div>
         <div style="text-align: center;" ng-show="loadingData">

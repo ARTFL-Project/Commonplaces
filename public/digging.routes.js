@@ -19,8 +19,9 @@
 			}).
             when('/topic/:dbname/:topicID', {
                 templateUrl: 'components/topicView/topicView.html'
-                // controller: 'TopicViewController',
-                // controllerAs: 'topicView'
+            }).
+            when('/commonplace/:dbname/search?:queryArgs', {
+                templateUrl: 'components/commonplaceSearch/commonplaceSearch.html'
             }).
 			otherwise({
 			  redirectTo: '/'

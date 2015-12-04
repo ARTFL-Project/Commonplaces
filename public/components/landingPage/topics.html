@@ -3,7 +3,7 @@
     <span class="glyphicon glyphicon-chevron-down" style="display: none; position: absolute; left: 5px; top: 5px"></span>
     <h4>Explore Commonplaces by Subject</h4>
     <div class="row hiding-element">
-        <div class="col-xs-12 col-sm-6 col-md-4" ng-repeat="section in topics">
+        <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3" ng-repeat="section in topics">
             <ul class="panel panel-default">
                 <li ng-repeat="topic in section">
                     <a href="" ng-click="displayTopics(topic.topic)">{{ topic.label }}</a>

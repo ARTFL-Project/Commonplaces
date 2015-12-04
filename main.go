@@ -62,15 +62,34 @@ type fullTextResults struct {
 	FullTextList []fullTextResultObject `json:"fullList"`
 }
 
-type topicResults struct {
-	Author       *string  `json:"sourceAuthor"`
-	Title        *string  `json:"sourceTitle"`
-	Date         *int32   `json:"sourceDate"`
-	LeftContext  *string  `json:"sourceLeftContext"`
-	MatchContext *string  `json:"sourceMatchContext"`
-	RightContext *string  `json:"sourceRightContext"`
-	PassageIdent *int32   `json:"passageIDCount"`
+type topicPassages struct {
+	Author       *string  `json:"author"`
+	Title        *string  `json:"title"`
+	Date         *int32   `json:"date"`
+	LeftContext  *string  `json:"leftContext"`
+	MatchContext *string  `json:"matchContext"`
+	RightContext *string  `json:"rightContext"`
+	PassageIdent *int32   `json:"passageID"`
 	TopicWeight  *float32 `json:"topicWeight"`
+}
+
+type topicResults struct {
+	Passages []topicPassages `json:"passages"`
+	Words    string          `json:"words"`
+}
+
+type wordDistribution struct {
+	Words *string `json:"words"`
+}
+
+type commonplaceFullTextResult struct {
+	Author       *string `json:"author"`
+	Title        *string `json:"title"`
+	Date         *int32  `json:"date"`
+	MatchContext *string `json:"matchContext"`
+	LeftContext  *string `json:"leftContext"`
+	RightContext *string `json:"rightContext"`
+	PassageIdent *int32  `json:"passageID"`
 }
 
 type urlKeyValue struct {
@@ -372,11 +391,11 @@ func getTopic(c *gin.Context) {
 	query := ""
 	var queryParams []interface{}
 	if firstQuery {
-		query += "select sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, passageident, topic_weight from " + dbname + " where topic=$1 order by topic_weight desc limit 50"
+		query += "select author, title, date, leftcontext, matchcontext, rightcontext, passageident, topic_weight from " + dbname + " where topic=$1 and matchsize > 10 order by topic_weight desc limit 50"
 		queryParams = append(queryParams, topic)
 		fmt.Printf("query is:%s %d\n", query, topic)
 	} else {
-		query += "select sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, passageident, topic_weight from " + dbname + " where topic=$1 and topic_weight < $2 order by topic_weight desc limit 100"
+		query += "select author, title, date, leftcontext, matchcontext, rightcontext, passageident, topic_weight from " + dbname + " where topic=$1 and matchsize > 10 and topic_weight < $2 order by topic_weight desc limit 100"
 		queryParams = append(queryParams, topic, lastTopicWeight)
 		fmt.Printf("query is:%s %d %f\n", query, topic, lastTopicWeight)
 	}
@@ -384,13 +403,14 @@ func getTopic(c *gin.Context) {
 
 	fmt.Println(topic)
 	if err != nil {
+		var emptyResults topicResults
 		fmt.Println(err)
-		c.JSON(200, results{})
+		c.JSON(200, emptyResults)
 	}
 
 	defer rows.Close()
 
-	var topicPassage []topicResults
+	var topicPassage []topicPassages
 	for rows.Next() {
 		var author string
 		var title string
@@ -404,21 +424,64 @@ func getTopic(c *gin.Context) {
 		if scanErr != nil {
 			fmt.Println(scanErr)
 		}
-		topicPassage = append(topicPassage, topicResults{&author, &title, &date, &leftContext, &matchContext, &rightContext, &passageID, &topicWeight})
+		topicPassage = append(topicPassage, topicPassages{&author, &title, &date, &leftContext, &matchContext, &rightContext, &passageID, &topicWeight})
 	}
 	if len(topicPassage) == 0 {
-		var emptyResults []topicResults
+		var emptyResults topicResults
 		c.JSON(200, emptyResults)
 	} else {
-		c.JSON(200, topicPassage)
+		words := getWordDistribution(c.Param("dbname"), topicID)
+		results := topicResults{topicPassage, words}
+		c.JSON(200, results)
 	}
 }
 
-// func searchInCommonplace(c *gin.Context) {
-// 	dbname := c.Param("dbname") + "_topics"
-// 	queryTerms := c.Query("queryCommonplaces")
-//
-// }
+func getWordDistribution(dbname string, topic string) string {
+	dbname += "_topic_words"
+	query := fmt.Sprintf("select words from %s where topic=$1", dbname)
+	var words string
+	err := pool.QueryRow(query, topic).Scan(&words)
+	if err != nil {
+		fmt.Println(err)
+		words = ""
+	}
+	words = strings.Replace(words, "{", "", 1)
+	words = strings.Replace(words, "}", "", 1)
+	words = strings.Replace(words, ",", ", ", -1)
+	return words
+}
+
+func searchInCommonplace(c *gin.Context) {
+	dbname := c.Param("dbname") + "_topics"
+	queryTerms := c.Query("query_terms")
+	query := fmt.Sprintf("select author, title, date, leftcontext, matchcontext, rightcontext, passageident from %s where ", dbname)
+	query += fmt.Sprintf("matchcontext_fulltext @@ to_tsquery('english', '%s') order by date, author limit 40", queryTerms)
+	rows, err := pool.Query(query)
+	if err != nil {
+		var emptyResults topicResults
+		fmt.Println(err)
+		c.JSON(200, emptyResults)
+	}
+
+	defer rows.Close()
+
+	var commonPlaceResults []commonplaceFullTextResult
+	for rows.Next() {
+		var author string
+		var title string
+		var date int32
+		var leftContext string
+		var rightContext string
+		var matchContext string
+		var passageID int32
+		scanErr := rows.Scan(&author, &title, &date, &leftContext, &matchContext, &rightContext, &passageID)
+		if scanErr != nil {
+			fmt.Println(scanErr)
+		}
+		commonPlaceResults = append(commonPlaceResults, commonplaceFullTextResult{&author, &title, &date, &leftContext, &matchContext, &rightContext, &passageID})
+	}
+	c.JSON(200, commonPlaceResults)
+}
 
 func exportConfig(c *gin.Context) {
 	c.JSON(200, webConfig)
@@ -464,10 +527,12 @@ func main() {
 	router.GET("/passage/:dbname/:passageID", index)
 	router.GET("/query/:dbname/search", index)
 	router.GET("/topic/:dbname/:topicID", index)
+	router.GET("/commonplace/:dbname/search", index)
 	// API calls
 	router.GET("/api/:dbname/commonplaces/:passageID", findCommonPlaces)
 	router.GET("/api/:dbname/fulltext", fullTextQuery)
 	router.GET("/api/:dbname/topic/:topicID", getTopic)
+	router.GET("/api/:dbname/searchincommonplace", searchInCommonplace)
 	// Export config
 	router.GET("/config/config.json", exportConfig)
 
