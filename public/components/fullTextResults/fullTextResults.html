@@ -37,7 +37,7 @@
                     </p>
                 </div>
             </div>
-            <div class="commonplace-notification" ng-if="result.passageID != 0">
+            <div class="commonplace-notification" ng-if="result.passageIDCount > 10">
                 <span class="panel panel-default exclamation-point">&#33;</span> This may be a <a href="passage/{{ ::dbname }}/{{ ::result.passageID }}">commonplace</a>
             </div>
         </div>

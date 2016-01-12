@@ -6,18 +6,20 @@
 
     function fullTextResults($http, $timeout, $log, $location, $routeParams, URL, sortEnd, sortKeys, usSpinnerService) {
         var storeQueryEnd = function(scope) {
-            var lastIndex = scope.fullTextResults.fullList.length - 1;
-            var lastRow = scope.fullTextResults.fullList[lastIndex];
-            var sortId = $location.search().sorting;
-            sortEnd.keys = [];
-            for (var i = 0; i < sortKeys.keys[sortId].fields.length; i++) {
-                var field = sortKeys.keys[sortId].fields[i];
-                var keyName = "last_" + field;
-                var val = lastRow[field];
-                sortEnd.keys.push({
-                    key: keyName,
-                    value: val
-                });
+            if (scope.fullTextResults.fullList.length !== 0) {
+                var lastIndex = scope.fullTextResults.fullList.length - 1;
+                var lastRow = scope.fullTextResults.fullList[lastIndex];
+                var sortId = $location.search().sorting;
+                sortEnd.keys = [];
+                for (var i = 0; i < sortKeys.keys[sortId].fields.length; i++) {
+                    var field = sortKeys.keys[sortId].fields[i];
+                    var keyName = "last_" + field;
+                    var val = lastRow[field];
+                    sortEnd.keys.push({
+                        key: keyName,
+                        value: val
+                    });
+                }
             }
         }
         return {
@@ -35,7 +37,7 @@
                 $http.get('api/' + scope.dbname + '/fulltext?' + urlString).then(function(response) {
                     scope.fullTextResults = response.data;
                     usSpinnerService.stop('spinner-1');
-                    $(".spinner").remove();
+                    angular.element(".spinner").remove();
                     // usSpinnerService.stop('spinner-2');
                 }).catch(function(response) {
                     scope.fullTextResults = {fullList: []};
@@ -45,7 +47,8 @@
                 scope.addMoreResults = function() {
                     scope.loadingData = true;
                     var formData = angular.copy(scope.main.formData);
-                    if (typeof(scope.fullTextResults !== "undefined")) {
+                    $log.debug(scope.fullTextResults.fullList)
+                    if (typeof(scope.fullTextResults.fullList !== "undefined")) {
                         storeQueryEnd(scope);
                         for (var i=0; i < sortEnd.keys.length; i++) {
                             formData[sortEnd.keys[i].key] = sortEnd.keys[i].value;

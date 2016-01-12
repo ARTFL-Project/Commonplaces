@@ -12,10 +12,11 @@
             vm.hideSearchForm = false;
             vm.landingPage = true;
             vm.webConfig = webConfig;
+            vm.debug = webConfig.debug;
             vm.description = false;
             vm.formData = {};
             vm.formData.duplicates = "ignore";
-            vm.formData.sorting = 1;
+            vm.formData.sorting = 0;
             vm.dbActive = vm.webConfig.databases[1].dbname;
 
             vm.openLandingPage = function() {

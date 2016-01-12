@@ -13,7 +13,7 @@
             </span>
             {{ ::passage.rightContext}}
         </p>
-        <p>
+        <p ng-if="passage.passageIDCount > 10">
             <a href="/passage/{{ main.dbActive }}/{{passage.passageID}}">View all similar passages</a>
         </p>
     </div>

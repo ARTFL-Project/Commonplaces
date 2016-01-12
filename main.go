@@ -1,117 +1,136 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
-	"net/http"
+	"io"
 	"net/url"
 	"os"
 	"sort"
 	"strconv"
 	"strings"
+	"text/template"
 
-	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx"
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/labstack/echo"
+	mw "github.com/labstack/echo/middleware"
 )
 
-type config struct {
-	Port      string                   `json:"port"`
-	Databases []map[string]interface{} `json:"databases"`
-	Debug     bool                     `json:"debug"`
-}
+type (
+	localTemplate struct {
+		templates *template.Template
+	}
 
-type resultObject struct {
-	Author       string         `json:"author"`
-	Title        string         `json:"title"`
-	Date         int32          `json:"date"`
-	LeftContext  string         `json:"leftContext"`
-	RightContext string         `json:"rightContext"`
-	MatchContext string         `json:"matchContext"`
-	ContextLink  string         `json:"contextLink"`
-	PassageID    string         `json:"passageID"`
-	OtherTitles  map[string]int `json:"otherTitles,omitempty"`
-}
+	config struct {
+		Port      string                   `json:"port"`
+		Databases []map[string]interface{} `json:"databases"`
+		Debug     bool                     `json:"debug"`
+	}
 
-type results struct {
-	Commonplace resultObject   `json:"commonplace"`
-	PassageList []resultObject `json:"passageList"`
-	TitleList   []resultObject `json:"titleList"`
-}
+	resultObject struct {
+		Author       string         `json:"author"`
+		Title        string         `json:"title"`
+		Date         int32          `json:"date"`
+		LeftContext  string         `json:"leftContext"`
+		RightContext string         `json:"rightContext"`
+		MatchContext string         `json:"matchContext"`
+		PhiloID      string         `json:"philoID"`
+		DatabaseName string         `json:"databaseName"`
+		PassageID    string         `json:"passageID"`
+		OtherTitles  map[string]int `json:"otherTitles,omitempty"`
+	}
 
-type fullTextResultObject struct {
-	AlignmentID        *int32  `json:"alignmentID"`
-	Author             *string `json:"sourceAuthor"`
-	Title              *string `json:"sourceTitle"`
-	Date               *int32  `json:"sourceDate"`
-	LeftContext        *string `json:"sourceLeftContext"`
-	MatchContext       *string `json:"sourceMatchContext"`
-	RightContext       *string `json:"sourceRightContext"`
-	ContextLink        *string `json:"sourceContextLink"`
-	TargetAuthor       *string `json:"targetAuthor"`
-	TargetTitle        *string `json:"targetTitle"`
-	TargetDate         *int32  `json:"targetDate"`
-	TargetLeftContext  *string `json:"targetLeftContext"`
-	TargetMatchContext *string `json:"targetMatchContext"`
-	TargetRightContext *string `json:"targetRightContext"`
-	TargetContextLink  *string `json:"targetContextLink"`
-	PassageID          *int32  `json:"passageID"`
-	PassageIDCount     *int32  `json:"passageIDCount"`
-}
+	results struct {
+		Commonplace resultObject   `json:"commonplace"`
+		PassageList []resultObject `json:"passageList"`
+		TitleList   []resultObject `json:"titleList"`
+	}
 
-type fullTextResults struct {
-	FullTextList []fullTextResultObject `json:"fullList"`
-}
+	fullTextResultObject struct {
+		Author             *string `json:"sourceAuthor"`
+		Title              *string `json:"sourceTitle"`
+		Date               *int32  `json:"sourceDate"`
+		LeftContext        *string `json:"sourceLeftContext"`
+		MatchContext       *string `json:"sourceMatchContext"`
+		RightContext       *string `json:"sourceRightContext"`
+		PhiloID            *string `json:"philoID"`
+		DatabaseName       *string `json:"databasename"`
+		TargetAuthor       *string `json:"targetAuthor"`
+		TargetTitle        *string `json:"targetTitle"`
+		TargetDate         *int32  `json:"targetDate"`
+		TargetLeftContext  *string `json:"targetLeftContext"`
+		TargetMatchContext *string `json:"targetMatchContext"`
+		TargetRightContext *string `json:"targetRightContext"`
+		TargetPhiloID      *string `json:"targetPhiloID"`
+		TargetDatabaseName *string `json:"targetDatabaseName"`
+		PassageID          *int32  `json:"passageID"`
+		PassageIDCount     *int32  `json:"passageIDCount"`
+	}
 
-type topicPassages struct {
-	Author       *string  `json:"author"`
-	Title        *string  `json:"title"`
-	Date         *int32   `json:"date"`
-	LeftContext  *string  `json:"leftContext"`
-	MatchContext *string  `json:"matchContext"`
-	RightContext *string  `json:"rightContext"`
-	PassageIdent *int32   `json:"passageID"`
-	TopicWeight  *float32 `json:"topicWeight"`
-}
+	fullTextResults struct {
+		FullTextList []fullTextResultObject `json:"fullList"`
+	}
 
-type topicResults struct {
-	Passages []topicPassages `json:"passages"`
-	Words    string          `json:"words"`
-}
+	topicPassages struct {
+		Author            *string  `json:"author"`
+		Title             *string  `json:"title"`
+		Date              *int32   `json:"date"`
+		LeftContext       *string  `json:"leftContext"`
+		MatchContext      *string  `json:"matchContext"`
+		RightContext      *string  `json:"rightContext"`
+		PassageIdent      *int32   `json:"passageID"`
+		PassageIdentCount *int32   `json:"passageIDCount"`
+		TopicWeight       *float32 `json:"topicWeight"`
+	}
 
-type wordDistribution struct {
-	Words *string `json:"words"`
-}
+	topicResults struct {
+		Passages []topicPassages `json:"passages"`
+		Words    string          `json:"words"`
+	}
 
-type commonplaceFullTextResult struct {
-	Author       *string `json:"author"`
-	Title        *string `json:"title"`
-	Date         *int32  `json:"date"`
-	MatchContext *string `json:"matchContext"`
-	LeftContext  *string `json:"leftContext"`
-	RightContext *string `json:"rightContext"`
-	PassageIdent *int32  `json:"passageID"`
-}
+	wordDistribution struct {
+		Words *string `json:"words"`
+	}
 
-type urlKeyValue struct {
-	Key   string
-	Value []string
-}
+	commonplaceFullTextResult struct {
+		Author            *string `json:"author"`
+		Title             *string `json:"title"`
+		Date              *int32  `json:"date"`
+		LeftContext       *string `json:"leftContext"`
+		MatchContext      *string `json:"matchContext"`
+		RightContext      *string `json:"rightContext"`
+		PassageIdent      *int32  `json:"passageID"`
+		PassageIdentCount *int32  `json:"passageIDCount"`
+	}
+
+	urlKeyValue struct {
+		Key   string
+		Value []string
+	}
+
+	byDate []resultObject
+)
 
 var webConfig = databaseConfig()
 
-var defaultConnConfig pgx.ConnConfig
-var pool = createConnPool()
+var db, err = sql.Open("mysql", "***REMOVED***@/digging")
 
-var parameterMap = map[string]string{
-	"sourceauthor":       "sourceauthor_fulltext",
-	"sourcetitle":        "sourcetitle_fulltext",
-	"sourcematchcontext": "sourcematchcontext_fulltext",
-	"targetauthor":       "targetauthor_fulltext",
-	"targettitle":        "targettitle_fulltext",
-	"targetmatchcontext": "targetmatchcontext_fulltext",
+var idCountMap = map[string]string{
+	"passageIDCount": "passageidentcount",
+}
+
+var fullTextFields = map[string]bool{
+	"sourceauthor":       true,
+	"targetauthor":       true,
+	"sourcetitle":        true,
+	"targettitle":        true,
+	"sourcematchcontext": true,
+	"targetmatchcontext": true,
 }
 
 var sortKeyMap = map[string][]string{
+	"0": []string{"passageidentcount desc", "sourceauthor", "sourcetitle"},
 	"1": []string{"targetdate", "targetauthor"},
 	"2": []string{"sourcedate", "sourceauthor"},
 	"3": []string{"targetauthor"},
@@ -119,12 +138,10 @@ var sortKeyMap = map[string][]string{
 }
 
 var queryOperatorSlice = map[string]string{
-	" AND ": " & ",
-	" OR ":  " | ",
-	"NOT ":  " ! ",
+	" AND ": " +",
+	" OR ":  " ",
+	"NOT ":  " -",
 }
-
-type byDate []resultObject
 
 func (slice byDate) Len() int {
 	return len(slice)
@@ -138,19 +155,16 @@ func (slice byDate) Swap(i, j int) {
 	slice[i], slice[j] = slice[j], slice[i]
 }
 
-func createConnPool() *pgx.ConnPool {
-	defaultConnConfig.Host = "localhost"
-	defaultConnConfig.Database = "digging"
-	defaultConnConfig.User = "postgres"
-	defaultConnConfig.Password = "***REMOVED***"
-	defaultConnConfig.RuntimeParams = make(map[string]string)
-	defaultConnConfig.RuntimeParams["statement_timeout"] = "40000"
-	config := pgx.ConnPoolConfig{ConnConfig: defaultConnConfig, MaxConnections: 50}
-	pool, err := pgx.NewConnPool(config)
+func (t *localTemplate) Render(w io.Writer, name string, data interface{}) error {
+	return t.templates.ExecuteTemplate(w, name, data)
+}
+
+func logOutput() *os.File {
+	f, err := os.OpenFile("app.log", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
 	if err != nil {
-		fmt.Printf("Unable to create connection pool: %v", err)
+		fmt.Println(err)
 	}
-	return pool
+	return f
 }
 
 func parseQuery(value string) string {
@@ -160,14 +174,15 @@ func parseQuery(value string) string {
 	return value
 }
 
-func findCommonPlaces(c *gin.Context) {
+func findCommonPlaces(c *echo.Context) error {
 	passageID := c.Param("passageID")
 	dbname := c.Param("dbname")
-	query := "select sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcecontextlink, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetcontextlink from " + dbname + " where passageident=$1"
+	query := "select sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcephiloid, sourcedatabasename, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetphiloid, targetdatabasename from " + dbname + " where passageident=?"
 	fmt.Printf("query is:%s\n", query)
 	fmt.Println(passageID)
-	rows, err := pool.Query(query, passageID)
+	rows, err := db.Query(query, passageID)
 	if err != nil {
+		c.Error(err)
 		c.JSON(200, results{})
 	}
 
@@ -188,14 +203,16 @@ func findCommonPlaces(c *gin.Context) {
 		var targetRightContext string
 		var matchContext string
 		var targetMatchContext string
-		var contextLink string
-		var targetContextLink string
-		err := rows.Scan(&author, &title, &date, &leftContext, &matchContext, &rightContext, &contextLink, &targetAuthor, &targetTitle, &targetDate, &targetLeftContext, &targetMatchContext, &targetRightContext, &targetContextLink)
+		var philoID string
+		var targetPhiloID string
+		var databaseName string
+		var targetDatabaseName string
+		err := rows.Scan(&author, &title, &date, &leftContext, &matchContext, &rightContext, &philoID, &databaseName, &targetAuthor, &targetTitle, &targetDate, &targetLeftContext, &targetMatchContext, &targetRightContext, &targetPhiloID, &targetDatabaseName)
 		if err != nil {
 			fmt.Println(err)
 		}
 		otherTitles := make(map[string]int, 0)
-		sourceObject := resultObject{author, title, date, leftContext, rightContext, matchContext, contextLink, passageID, otherTitles}
+		sourceObject := resultObject{author, title, date, leftContext, rightContext, matchContext, philoID, databaseName, passageID, otherTitles}
 		if _, ok := filteredAuthors[author]; !ok {
 			filteredAuthors[author] = sourceObject
 		} else if _, ok := filteredAuthors[author]; ok {
@@ -217,7 +234,7 @@ func findCommonPlaces(c *gin.Context) {
 		}
 		// Process target results
 		targetOtherTitles := make(map[string]int, 0)
-		targetObject := resultObject{targetAuthor, targetTitle, targetDate, targetLeftContext, targetRightContext, targetMatchContext, targetContextLink, passageID, targetOtherTitles}
+		targetObject := resultObject{targetAuthor, targetTitle, targetDate, targetLeftContext, targetRightContext, targetMatchContext, targetPhiloID, targetDatabaseName, passageID, targetOtherTitles}
 		if _, ok := filteredAuthors[targetAuthor]; !ok {
 			filteredAuthors[targetAuthor] = targetObject
 		} else if _, ok := filteredAuthors[targetAuthor]; ok {
@@ -249,25 +266,24 @@ func findCommonPlaces(c *gin.Context) {
 	}
 	sort.Sort(byDate(titleList))
 	fullResults := results{passageList[0], passageList[1:], titleList}
-	c.JSON(200, fullResults)
+	return c.JSON(200, fullResults)
 }
 
-func fullTextQuery(c *gin.Context) {
-	queryStringMap, _ := url.ParseQuery(c.Request.URL.RawQuery)
+func fullTextQuery(c *echo.Context) error {
+	queryStringMap, _ := url.ParseQuery(c.Request().URL.RawQuery)
 	dbname := c.Param("dbname")
 	delete(queryStringMap, "dbname")
-	var language string
+	// var language string
 	var duplicatesID string
 	for _, value := range webConfig.Databases {
 		if dbname == value["dbname"] {
-			language = value["language"].(string)
+			// language = value["language"].(string)
 			duplicatesID = value["duplicatesID"].(string)
 			break
 		}
 	}
 
-	fmt.Println(queryStringMap)
-	query := "select alignment_id, sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcecontextlink, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetcontextlink, passageident, passageidentcount from " + dbname + " where "
+	query := "select sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcephiloid, sourcedatabasename, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetphiloid, targetdatabasename, passageident, passageidentcount from " + dbname + " where "
 	sorting := strings.Join(sortKeyMap[queryStringMap["sorting"][0]], ", ")
 	currentPositionParam := make(map[string][]interface{})
 	var params []string
@@ -282,10 +298,9 @@ func fullTextQuery(c *gin.Context) {
 						paramValue = fmt.Sprintf("passageident!=%s", duplicatesID)
 					} else if param == "bible" {
 						paramValue = fmt.Sprintf("authorident!=1")
-					} else if _, ok := parameterMap[param]; ok {
-						param = parameterMap[param]
+					} else if _, ok := fullTextFields[param]; ok {
 						value = parseQuery(value)
-						paramValue = fmt.Sprintf("%s @@ to_tsquery('%s', '%s')", param, language, value)
+						paramValue = fmt.Sprintf("MATCH(%s) AGAINST('%s' IN BOOLEAN MODE)", param, value)
 					} else {
 						dateRange := strings.Split(value, "-")
 						if len(dateRange) == 2 {
@@ -299,6 +314,10 @@ func fullTextQuery(c *gin.Context) {
 				} else if strings.HasPrefix(param, "last_") {
 					continued = true
 					field := strings.Replace(param, "last_", "", 1)
+					// field = parameterMap[field]
+					if field == "passageIDCount" {
+						field = "passageidentcount"
+					}
 					currentPositionParam["fields"] = append(currentPositionParam["fields"], field)
 					currentPositionParam["values"] = append(currentPositionParam["values"], value)
 				}
@@ -307,11 +326,15 @@ func fullTextQuery(c *gin.Context) {
 	}
 	query += strings.Join(params, " and ")
 	var err error
-	var rows *pgx.Rows
+	var rows *sql.Rows
 	if !continued {
-		query += fmt.Sprintf(" order by %s limit 20", sorting)
+		if queryStringMap["sorting"][0] == "0" {
+			query += fmt.Sprintf(" order by %s limit 20", sorting)
+		} else {
+			query += fmt.Sprintf(" order by %s limit 20", sorting)
+		}
 		fmt.Printf("query is:%s\n", query)
-		rows, err = pool.Query(query)
+		rows, err = db.Query(query)
 	} else {
 		var fieldList []string
 		for _, value := range currentPositionParam["fields"] {
@@ -319,26 +342,29 @@ func fullTextQuery(c *gin.Context) {
 		}
 		fields := strings.Join(fieldList, ", ")
 		var placeholders []string
-		for pos := range currentPositionParam["values"] {
-			placeholder := "$" + strconv.Itoa(pos+1)
+		for _ = range currentPositionParam["values"] {
+			placeholder := "?"
 			placeholders = append(placeholders, placeholder)
 		}
 		placeholderString := strings.Join(placeholders, ", ")
-		query += fmt.Sprintf(" and (%s) > (%s) order by %s limit 40", fields, placeholderString, sorting)
+		if queryStringMap["sorting"][0] == "0" {
+			query += fmt.Sprintf(" and (%s) < (%s) order by %s limit 40", fields, placeholderString, sorting)
+		} else {
+			query += fmt.Sprintf(" and (%s) > (%s) order by %s limit 40", fields, placeholderString, sorting)
+		}
 		fmt.Printf("query is:%s\n", query)
-		rows, err = pool.Query(query, currentPositionParam["values"]...)
+		rows, err = db.Query(query, currentPositionParam["values"]...)
 	}
 	if err != nil {
 		var emptyResults []fullTextResultObject
-		fmt.Println(err)
-		c.JSON(200, fullTextResults{emptyResults})
+		c.Error(err)
+		return c.JSON(200, fullTextResults{emptyResults})
 	}
 
 	defer rows.Close()
 
 	var results fullTextResults
 	for rows.Next() {
-		var alignmentID int32
 		var author string
 		var targetAuthor string
 		var title string
@@ -351,30 +377,30 @@ func fullTextQuery(c *gin.Context) {
 		var targetRightContext string
 		var matchContext string
 		var targetMatchContext string
-		var contextLink string
-		var targetContextLink string
+		var philoID string
+		var targetphiloID string
+		var databaseName string
+		var targetDatabaseName string
 		var passageID int32
 		var passageIDCount int32
-		err := rows.Scan(&alignmentID, &author, &title, &date, &leftContext, &matchContext, &rightContext, &contextLink, &targetAuthor, &targetTitle, &targetDate, &targetLeftContext, &targetMatchContext, &targetRightContext, &targetContextLink, &passageID, &passageIDCount)
+		err := rows.Scan(&author, &title, &date, &leftContext, &matchContext, &rightContext, &philoID, &databaseName, &targetAuthor, &targetTitle, &targetDate, &targetLeftContext, &targetMatchContext, &targetRightContext, &targetphiloID, &targetDatabaseName, &passageID, &passageIDCount)
 		if err != nil {
 			var emptyResults []fullTextResultObject
-			fmt.Println("retrieving results of query failed")
-			fmt.Println(err)
-			c.JSON(200, fullTextResults{emptyResults})
+			c.Error(err)
+			return c.JSON(200, fullTextResults{emptyResults})
 		}
-		sourceResults := fullTextResultObject{&alignmentID, &author, &title, &date, &leftContext, &matchContext, &rightContext, &contextLink, &targetAuthor, &targetTitle, &targetDate, &targetLeftContext, &targetMatchContext, &targetRightContext, &targetContextLink, &passageID, &passageIDCount}
+		sourceResults := fullTextResultObject{&author, &title, &date, &leftContext, &matchContext, &rightContext, &philoID, &databaseName, &targetAuthor, &targetTitle, &targetDate, &targetLeftContext, &targetMatchContext, &targetRightContext, &targetphiloID, &targetDatabaseName, &passageID, &passageIDCount}
 		results.FullTextList = append(results.FullTextList, sourceResults)
 	}
 
 	if len(results.FullTextList) == 0 {
 		var emptyResults []fullTextResultObject
-		c.JSON(200, fullTextResults{emptyResults})
-	} else {
-		c.JSON(200, results)
+		return c.JSON(200, fullTextResults{emptyResults})
 	}
+	return c.JSON(200, results)
 }
 
-func getTopic(c *gin.Context) {
+func getTopic(c *echo.Context) error {
 	dbname := c.Param("dbname") + "_topics"
 	topicID := c.Param("topicID")
 	topic, _ := strconv.Atoi(topicID)
@@ -391,21 +417,21 @@ func getTopic(c *gin.Context) {
 	query := ""
 	var queryParams []interface{}
 	if firstQuery {
-		query += "select author, title, date, leftcontext, matchcontext, rightcontext, passageident, topic_weight from " + dbname + " where topic=$1 and matchsize > 10 order by topic_weight desc limit 50"
+		query += "select author, title, date, leftcontext, matchcontext, rightcontext, passageident, passageidentcount, topic_weight from " + dbname + " where topic=? and matchsize > 10 order by topic_weight desc limit 50"
 		queryParams = append(queryParams, topic)
 		fmt.Printf("query is:%s %d\n", query, topic)
 	} else {
-		query += "select author, title, date, leftcontext, matchcontext, rightcontext, passageident, topic_weight from " + dbname + " where topic=$1 and matchsize > 10 and topic_weight < $2 order by topic_weight desc limit 100"
+		query += "select author, title, date, leftcontext, matchcontext, rightcontext, passageident, passageidentcount, topic_weight from " + dbname + " where topic=? and matchsize > 10 and topic_weight < ? order by topic_weight desc limit 100"
 		queryParams = append(queryParams, topic, lastTopicWeight)
 		fmt.Printf("query is:%s %d %f\n", query, topic, lastTopicWeight)
 	}
-	rows, err := pool.Query(query, queryParams...)
+	rows, err := db.Query(query, queryParams...)
 
 	fmt.Println(topic)
 	if err != nil {
 		var emptyResults topicResults
-		fmt.Println(err)
-		c.JSON(200, emptyResults)
+		c.Error(err)
+		return c.JSON(200, emptyResults)
 	}
 
 	defer rows.Close()
@@ -419,30 +445,26 @@ func getTopic(c *gin.Context) {
 		var rightContext string
 		var matchContext string
 		var passageID int32
+		var passageIDCount int32
 		var topicWeight float32
-		scanErr := rows.Scan(&author, &title, &date, &leftContext, &matchContext, &rightContext, &passageID, &topicWeight)
+		scanErr := rows.Scan(&author, &title, &date, &leftContext, &matchContext, &rightContext, &passageID, &passageIDCount, &topicWeight)
 		if scanErr != nil {
-			fmt.Println(scanErr)
+			c.Error(scanErr)
 		}
-		topicPassage = append(topicPassage, topicPassages{&author, &title, &date, &leftContext, &matchContext, &rightContext, &passageID, &topicWeight})
+		topicPassage = append(topicPassage, topicPassages{&author, &title, &date, &leftContext, &matchContext, &rightContext, &passageID, &passageIDCount, &topicWeight})
 	}
-	if len(topicPassage) == 0 {
-		var emptyResults topicResults
-		c.JSON(200, emptyResults)
-	} else {
-		words := getWordDistribution(c.Param("dbname"), topicID)
-		results := topicResults{topicPassage, words}
-		c.JSON(200, results)
-	}
+	words := getWordDistribution(c, c.Param("dbname"), topicID)
+	results := topicResults{topicPassage, words}
+	return c.JSON(200, results)
 }
 
-func getWordDistribution(dbname string, topic string) string {
+func getWordDistribution(c *echo.Context, dbname string, topic string) string {
 	dbname += "_topic_words"
-	query := fmt.Sprintf("select words from %s where topic=$1", dbname)
+	query := fmt.Sprintf("select words from %s where topic=?", dbname)
 	var words string
-	err := pool.QueryRow(query, topic).Scan(&words)
+	err := db.QueryRow(query, topic).Scan(&words)
 	if err != nil {
-		fmt.Println(err)
+		c.Error(err)
 		words = ""
 	}
 	words = strings.Replace(words, "{", "", 1)
@@ -451,15 +473,26 @@ func getWordDistribution(dbname string, topic string) string {
 	return words
 }
 
-func searchInCommonplace(c *gin.Context) {
+func searchInCommonplace(c *echo.Context) error {
 	dbname := c.Param("dbname") + "_topics"
-	queryTerms := c.Query("query_terms")
-	query := fmt.Sprintf("select author, title, date, leftcontext, matchcontext, rightcontext, passageident from %s where ", dbname)
-	query += fmt.Sprintf("matchcontext_fulltext @@ to_tsquery('english', '%s') order by date, author limit 40", queryTerms)
-	rows, err := pool.Query(query)
+	queryTerms := parseQuery(c.Query("query_terms"))
+	lastAuthor := c.Param("last_author")
+	lastDate := c.Param("last_date")
+	query := fmt.Sprintf("select author, title, date, leftcontext, matchcontext, rightcontext, passageident, passageidentcount from %s where ", dbname)
+	var queryParams []interface{}
+	if lastAuthor != "" {
+		queryParams = append(queryParams, lastDate, lastAuthor, queryTerms)
+		query += "(date, author) > (?, ?) and match(matchcontext) against(? IN BOOLEAN MODE) order by date, author asc limit 100"
+	} else {
+		queryParams = append(queryParams, queryTerms)
+		query += "match(matchcontext) against(? IN BOOLEAN MODE) order by date, author limit 40"
+	}
+
+	fmt.Println(query, queryParams)
+	rows, err := db.Query(query, queryParams...)
 	if err != nil {
 		var emptyResults topicResults
-		fmt.Println(err)
+		c.Error(err)
 		c.JSON(200, emptyResults)
 	}
 
@@ -474,23 +507,23 @@ func searchInCommonplace(c *gin.Context) {
 		var rightContext string
 		var matchContext string
 		var passageID int32
-		scanErr := rows.Scan(&author, &title, &date, &leftContext, &matchContext, &rightContext, &passageID)
+		var passageIdentCount int32
+		scanErr := rows.Scan(&author, &title, &date, &leftContext, &matchContext, &rightContext, &passageID, &passageIdentCount)
 		if scanErr != nil {
-			fmt.Println(scanErr)
+			c.Error(scanErr)
 		}
-		commonPlaceResults = append(commonPlaceResults, commonplaceFullTextResult{&author, &title, &date, &leftContext, &matchContext, &rightContext, &passageID})
+		commonPlaceResults = append(commonPlaceResults, commonplaceFullTextResult{&author, &title, &date, &leftContext, &matchContext, &rightContext, &passageID, &passageIdentCount})
 	}
-	c.JSON(200, commonPlaceResults)
+	return c.JSON(200, commonPlaceResults)
 }
 
-func exportConfig(c *gin.Context) {
-	c.JSON(200, webConfig)
+func exportConfig(c *echo.Context) error {
+	return c.JSON(200, webConfig)
 }
 
-func index(c *gin.Context) {
-	c.HTML(http.StatusOK, "index.html", gin.H{
-		"title": "Main website",
-	})
+func index(c *echo.Context) error {
+	var empty interface{}
+	return c.Render(200, "index.html", empty)
 }
 
 func databaseConfig() config {
@@ -511,30 +544,43 @@ func main() {
 
 	fmt.Println(webConfig)
 
-	if !webConfig.Debug {
-		gin.SetMode(gin.ReleaseMode)
-	}
+	e := echo.New()
 
-	router := gin.Default()
+	e.HTTP2(true)
+
+	e.Use(mw.Logger())
+	e.SetLogOutput(logOutput())
+	e.SetDebug(webConfig.Debug)
+
+	e.Use(mw.Recover())
+	e.Use(mw.Gzip())
+
+	indexTemplate := &localTemplate{
+		// Cached templates
+		templates: template.Must(template.ParseFiles("public/index.html")),
+	}
+	e.SetRenderer(indexTemplate)
 
 	// Static files
-	router.LoadHTMLFiles("index.html")
-	router.Static("public", "./public")
-	router.Static("components", "./public/components")
-	router.Static("css", "./public/css")
-	// Routes
-	router.GET("/", index)
-	router.GET("/passage/:dbname/:passageID", index)
-	router.GET("/query/:dbname/search", index)
-	router.GET("/topic/:dbname/:topicID", index)
-	router.GET("/commonplace/:dbname/search", index)
-	// API calls
-	router.GET("/api/:dbname/commonplaces/:passageID", findCommonPlaces)
-	router.GET("/api/:dbname/fulltext", fullTextQuery)
-	router.GET("/api/:dbname/topic/:topicID", getTopic)
-	router.GET("/api/:dbname/searchincommonplace", searchInCommonplace)
-	// Export config
-	router.GET("/config/config.json", exportConfig)
+	e.Static("/public/", "public")
+	e.Static("/components/", "public/components")
+	e.Static("/css/", "public/css")
 
-	router.Run(":" + webConfig.Port)
+	e.Index("public/index.html")
+
+	// Routes
+	// e.Get("/", index)
+	e.Get("/passage/:dbname/:passageID", index)
+	e.Get("/query/:dbname/search", index)
+	e.Get("/topic/:dbname/:topicID", index)
+	e.Get("/commonplace/:dbname/search", index)
+	// API calls
+	e.Get("/api/:dbname/commonplaces/:passageID", findCommonPlaces)
+	e.Get("/api/:dbname/fulltext", fullTextQuery)
+	e.Get("/api/:dbname/topic/:topicID", getTopic)
+	e.Get("/api/:dbname/searchincommonplace", searchInCommonplace)
+	// Export config
+	e.Get("/config/config.json", exportConfig)
+
+	e.Run(":" + webConfig.Port)
 }

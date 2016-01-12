@@ -77,7 +77,7 @@
             templateUrl: 'components/searchForm/searchForm.html',
             link: function(scope) {
                 angular.element('[data-toggle="popover"]').popover();
-                scope.sorting = "Target date, author";
+                scope.sorting = "Commonplace Probability";
                 scope.submit = function() {
                     scope.results = [];
                     if (scope.main.formData.duplicates != "ignore") {
@@ -87,6 +87,7 @@
                         delete scope.main.formData.bible;
                     }
                     var urlString = URL.objectToString(scope.main.formData);
+                    $log.debug(urlString)
                     if (urlString.length === 0) {
                         alert("You haven't searched for anything, please fill in one of the search boxes");
                     } else {

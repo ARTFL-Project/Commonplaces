@@ -1,5 +1,10 @@
 <div id="topic-results">
-    <h4 ng-if="debug"><b>Word distribution:</b> {{ wordsInTopic }}</h4>
+    <h4 ng-if="debug">
+        <div style="text-align: center;">
+            <b>{{ currentTopic }}</b>
+        </div>
+    </h4>
+    <h5>Top words in topic:<br>{{ wordsInTopic }}</h5>
     <div infinite-scroll="addMoreResults()" infinite-scroll-distance="1" infinite-scroll-disabled="loadingData" infinite-scroll-immediate-check="false">
         <div class="panel panel-default result alignment" ng-repeat="passage in topicPassages | limitTo: displayLimit track by $index">
             <h5 class="result-number">{{ ::$index + 1}}</h5>
@@ -15,8 +20,8 @@
                 </span>
                 {{ ::passage.rightContext}}
             </p>
-            <p>
-                <a href="/passage/{{ main.dbActive }}/{{passage.passageID}}">View all similar passages</a>
+            <p ng-if="passage.passageIDCount > 10">
+                This may be a commonplace: <a href="/passage/{{ main.dbActive }}/{{passage.passageID}}">view all similar passages</a>
             </p>
         </div>
         <div style="text-align: center;" ng-show="loadingData">
