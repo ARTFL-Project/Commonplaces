@@ -77,7 +77,7 @@
             templateUrl: 'components/searchForm/searchForm.html',
             link: function(scope) {
                 angular.element('[data-toggle="popover"]').popover();
-                scope.sorting = "Commonplace Probability";
+                scope.sorting = "No Sorting";
                 scope.submit = function() {
                     scope.results = [];
                     if (scope.main.formData.duplicates != "ignore") {

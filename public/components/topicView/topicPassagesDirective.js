@@ -18,7 +18,7 @@
                 }
                 var topics = webConfig.databases[dbIndex].topics;
                 scope.displayLimit = 50;
-                var urlString = "/api/" + scope.main.dbActive + "/topic/" + $routeParams.topicID;
+                var urlString = "/api/" + $routeParams.dbname + "/topic/" + $routeParams.topicID;
                 var promise = $http.get(urlString);
                 promise.then(function(response) {
                     scope.main.hideSearchForm = true;
@@ -28,14 +28,16 @@
                 });
                 scope.loadingData = false;
                 scope.addMoreResults = function() {
-                    scope.loadingData = true;
-                    var lastWeight = scope.topicPassages[scope.topicPassages.length-1].topicWeight;
-                    var update = $http.get(urlString + "?topicWeight=" + lastWeight);
-                    update.then(function(response) {
-                        Array.prototype.push.apply(scope.topicPassages, response.data.passages);
-                        scope.displayLimit += 100;
-                        scope.loadingData = false;
-                    });
+                    if (typeof(scope.topicPassages) !== "undefined") {
+                        scope.loadingData = true;
+                        var lastWeight = scope.topicPassages[scope.topicPassages.length-1].topicWeight;
+                        var update = $http.get(urlString + "?topicWeight=" + lastWeight);
+                        update.then(function(response) {
+                            Array.prototype.push.apply(scope.topicPassages, response.data.passages);
+                            scope.displayLimit += 100;
+                            scope.loadingData = false;
+                        });
+                    }
                 }
             }
         }

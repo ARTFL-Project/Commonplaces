@@ -130,11 +130,12 @@ var fullTextFields = map[string]bool{
 }
 
 var sortKeyMap = map[string][]string{
-	"0": []string{"passageidentcount desc", "sourceauthor", "sourcetitle"},
-	"1": []string{"targetdate", "targetauthor"},
-	"2": []string{"sourcedate", "sourceauthor"},
-	"3": []string{"targetauthor"},
-	"4": []string{"targetauthor"},
+	"-1": []string{""},
+	"0":  []string{"passageidentcount desc", "sourceauthor", "sourcetitle"},
+	"1":  []string{"targetdate", "targetauthor"},
+	"2":  []string{"sourcedate", "sourceauthor"},
+	"3":  []string{"targetauthor"},
+	"4":  []string{"targetauthor"},
 }
 
 var queryOperatorSlice = map[string]string{
@@ -328,8 +329,8 @@ func fullTextQuery(c *echo.Context) error {
 	var err error
 	var rows *sql.Rows
 	if !continued {
-		if queryStringMap["sorting"][0] == "0" {
-			query += fmt.Sprintf(" order by %s limit 20", sorting)
+		if queryStringMap["sorting"][0] == "-1" {
+			query += " limit 20"
 		} else {
 			query += fmt.Sprintf(" order by %s limit 20", sorting)
 		}

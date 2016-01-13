@@ -12,6 +12,10 @@
         })
         .value("sortKeys", {
             keys: {
+                "-1": {
+                    label: "No Sorting",
+                    fields: [""]
+                },
                 "0": {
                     label: "Commonplace Probability",
                     fields: ["passageIDCount"]
