@@ -141,7 +141,7 @@ var sortKeyMap = map[string][]string{
 var queryOperatorSlice = map[string]string{
 	" AND ": " +",
 	" OR ":  " ",
-	"NOT ":  " -",
+	" NOT ": " -",
 }
 
 func (slice byDate) Len() int {
@@ -278,7 +278,6 @@ func fullTextQuery(c *echo.Context) error {
 	var duplicatesID string
 	for _, value := range webConfig.Databases {
 		if dbname == value["dbname"] {
-			// language = value["language"].(string)
 			duplicatesID = value["duplicatesID"].(string)
 			break
 		}
@@ -301,7 +300,13 @@ func fullTextQuery(c *echo.Context) error {
 						paramValue = fmt.Sprintf("authorident!=1")
 					} else if _, ok := fullTextFields[param]; ok {
 						value = parseQuery(value)
-						paramValue = fmt.Sprintf("MATCH(%s) AGAINST('%s' IN BOOLEAN MODE)", param, value)
+						if strings.HasPrefix(value, "NOT ") {
+							value = strings.Replace(value, "NOT ", "", 1)
+							value = strings.Replace(value, "-", "", -1)
+							paramValue = fmt.Sprintf("NOT MATCH(%s) AGAINST('%s' IN BOOLEAN MODE)", param, value)
+						} else {
+							paramValue = fmt.Sprintf("MATCH(%s) AGAINST('%s' IN BOOLEAN MODE)", param, value)
+						}
 					} else {
 						dateRange := strings.Split(value, "-")
 						if len(dateRange) == 2 {
