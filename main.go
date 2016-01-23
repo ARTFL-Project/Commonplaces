@@ -121,10 +121,13 @@ var idCountMap = map[string]string{
 }
 
 var fullTextFields = map[string]bool{
+	"author":             true,
 	"sourceauthor":       true,
 	"targetauthor":       true,
+	"title":              true,
 	"sourcetitle":        true,
 	"targettitle":        true,
+	"matchcontext":       true,
 	"sourcematchcontext": true,
 	"targetmatchcontext": true,
 }
@@ -173,6 +176,45 @@ func parseQuery(value string) string {
 		value = strings.Replace(value, operator, symbol, -1)
 	}
 	return value
+}
+
+func buildQuery(queryStringMap map[string][]string, duplicatesID string) string {
+	var params []string
+	var values []interface{}
+	for param, v := range queryStringMap {
+		for _, value := range v {
+			if value != "" {
+				if param != "sorting" {
+					var paramValue string
+					if param == "duplicates" {
+						paramValue = fmt.Sprintf("passageident!=%s", duplicatesID)
+					} else if param == "bible" {
+						paramValue = fmt.Sprintf("authorident!=1")
+					} else if _, ok := fullTextFields[param]; ok {
+						value = parseQuery(value)
+						if strings.HasPrefix(value, "NOT ") {
+							value = strings.Replace(value, "NOT ", "", 1)
+							value = strings.Replace(value, "-", "", -1)
+							paramValue = fmt.Sprintf("NOT MATCH(%s) AGAINST('%s' IN BOOLEAN MODE)", param, value)
+						} else {
+							paramValue = fmt.Sprintf("MATCH(%s) AGAINST('%s' IN BOOLEAN MODE)", param, value)
+						}
+					} else {
+						dateRange := strings.Split(value, "-")
+						if len(dateRange) == 2 {
+							paramValue = fmt.Sprintf("%s between %s and %s", param, dateRange[0], dateRange[1])
+						} else {
+							paramValue = fmt.Sprintf("%s='%s'", param, value)
+						}
+					}
+					params = append(params, paramValue)
+					values = append(values, value)
+				}
+			}
+		}
+	}
+	queryConditions := strings.Join(params, " and ")
+	return queryConditions
 }
 
 func findCommonPlaces(c *echo.Context) error {
@@ -274,7 +316,13 @@ func fullTextQuery(c *echo.Context) error {
 	queryStringMap, _ := url.ParseQuery(c.Request().URL.RawQuery)
 	dbname := c.Param("dbname")
 	delete(queryStringMap, "dbname")
-	// var language string
+	continued := false
+	var offset int
+	if _, ok := queryStringMap["offset"]; ok {
+		offset, _ = strconv.Atoi(queryStringMap["offset"][0])
+		delete(queryStringMap, "offset")
+		continued = true
+	}
 	var duplicatesID string
 	for _, value := range webConfig.Databases {
 		if dbname == value["dbname"] {
@@ -282,55 +330,9 @@ func fullTextQuery(c *echo.Context) error {
 			break
 		}
 	}
-
 	query := "select sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcephiloid, sourcedatabasename, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetphiloid, targetdatabasename, passageident, passageidentcount from " + dbname + " where "
 	sorting := strings.Join(sortKeyMap[queryStringMap["sorting"][0]], ", ")
-	currentPositionParam := make(map[string][]interface{})
-	var params []string
-	var values []interface{}
-	continued := false
-	for param, v := range queryStringMap {
-		for _, value := range v {
-			if value != "" {
-				if param != "sorting" && !strings.HasPrefix(param, "last_") {
-					var paramValue string
-					if param == "duplicates" {
-						paramValue = fmt.Sprintf("passageident!=%s", duplicatesID)
-					} else if param == "bible" {
-						paramValue = fmt.Sprintf("authorident!=1")
-					} else if _, ok := fullTextFields[param]; ok {
-						value = parseQuery(value)
-						if strings.HasPrefix(value, "NOT ") {
-							value = strings.Replace(value, "NOT ", "", 1)
-							value = strings.Replace(value, "-", "", -1)
-							paramValue = fmt.Sprintf("NOT MATCH(%s) AGAINST('%s' IN BOOLEAN MODE)", param, value)
-						} else {
-							paramValue = fmt.Sprintf("MATCH(%s) AGAINST('%s' IN BOOLEAN MODE)", param, value)
-						}
-					} else {
-						dateRange := strings.Split(value, "-")
-						if len(dateRange) == 2 {
-							paramValue = fmt.Sprintf("%s between %s and %s", param, dateRange[0], dateRange[1])
-						} else {
-							paramValue = fmt.Sprintf("%s='%s'", param, value)
-						}
-					}
-					params = append(params, paramValue)
-					values = append(values, value)
-				} else if strings.HasPrefix(param, "last_") {
-					continued = true
-					field := strings.Replace(param, "last_", "", 1)
-					// field = parameterMap[field]
-					if field == "passageIDCount" {
-						field = "passageidentcount"
-					}
-					currentPositionParam["fields"] = append(currentPositionParam["fields"], field)
-					currentPositionParam["values"] = append(currentPositionParam["values"], value)
-				}
-			}
-		}
-	}
-	query += strings.Join(params, " and ")
+	query += buildQuery(queryStringMap, duplicatesID)
 	var err error
 	var rows *sql.Rows
 	if !continued {
@@ -342,24 +344,14 @@ func fullTextQuery(c *echo.Context) error {
 		fmt.Printf("query is:%s\n", query)
 		rows, err = db.Query(query)
 	} else {
-		var fieldList []string
-		for _, value := range currentPositionParam["fields"] {
-			fieldList = append(fieldList, value.(string))
-		}
-		fields := strings.Join(fieldList, ", ")
-		var placeholders []string
-		for _ = range currentPositionParam["values"] {
-			placeholder := "?"
-			placeholders = append(placeholders, placeholder)
-		}
-		placeholderString := strings.Join(placeholders, ", ")
-		if queryStringMap["sorting"][0] == "0" {
-			query += fmt.Sprintf(" and (%s) < (%s) order by %s limit 40", fields, placeholderString, sorting)
+		if queryStringMap["sorting"][0] == "-1" {
+			query += fmt.Sprintf(" limit %d, 40", offset)
 		} else {
-			query += fmt.Sprintf(" and (%s) > (%s) order by %s limit 40", fields, placeholderString, sorting)
+			query += fmt.Sprintf(" order by %s limit %d, 40", sorting, offset)
 		}
+
 		fmt.Printf("query is:%s\n", query)
-		rows, err = db.Query(query, currentPositionParam["values"]...)
+		rows, err = db.Query(query)
 	}
 	if err != nil {
 		var emptyResults []fullTextResultObject
@@ -481,21 +473,25 @@ func getWordDistribution(c *echo.Context, dbname string, topic string) string {
 
 func searchInCommonplace(c *echo.Context) error {
 	dbname := c.Param("dbname") + "_topics"
-	queryTerms := parseQuery(c.Query("query_terms"))
-	lastAuthor := c.Param("last_author")
-	lastDate := c.Param("last_date")
+	queryStringMap, _ := url.ParseQuery(c.Request().URL.RawQuery)
+	var offset int
+	continued := false
+	if _, ok := queryStringMap["offset"]; ok {
+		offset, _ = strconv.Atoi(queryStringMap["offset"][0])
+		delete(queryStringMap, "offset")
+		continued = true
+	}
 	query := fmt.Sprintf("select author, title, date, leftcontext, matchcontext, rightcontext, passageident, passageidentcount from %s where ", dbname)
-	var queryParams []interface{}
-	if lastAuthor != "" {
-		queryParams = append(queryParams, lastDate, lastAuthor, queryTerms)
-		query += "(date, author) > (?, ?) and match(matchcontext) against(? IN BOOLEAN MODE) order by date, author asc limit 100"
+	query += buildQuery(queryStringMap, "")
+
+	if !continued {
+		query += " limit 40"
 	} else {
-		queryParams = append(queryParams, queryTerms)
-		query += "match(matchcontext) against(? IN BOOLEAN MODE) order by date, author limit 40"
+		query += fmt.Sprintf(" limit %d, 40", offset)
 	}
 
-	fmt.Println(query, queryParams)
-	rows, err := db.Query(query, queryParams...)
+	fmt.Println(query)
+	rows, err := db.Query(query)
 	if err != nil {
 		var emptyResults topicResults
 		c.Error(err)

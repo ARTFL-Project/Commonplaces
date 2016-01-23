@@ -17,6 +17,7 @@
             vm.formData = {};
             vm.formData.duplicates = "ignore";
             vm.formData.sorting = -1;
+            vm.commonplace = {};
             vm.dbActive = vm.webConfig.databases[1].dbname;
 
             vm.openLandingPage = function() {

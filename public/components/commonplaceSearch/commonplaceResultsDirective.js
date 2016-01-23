@@ -11,10 +11,13 @@
         return {
             templateUrl: "components/commonplaceSearch/commonplaceResults.html",
             link: function(scope) {
-                var queryTerms = $location.search().query_terms;
-                var promise = $http.get("/api/" + scope.main.dbActive + "/searchincommonplace?query_terms=" + queryTerms);
+                var urlString = URL.objectToString($location.search());
+                scope.main.commonplace = $location.search(); // for page reload
+                var promise = $http.get("/api/" + scope.main.dbActive + "/searchincommonplace?" + urlString);
+                scope.currentPosition = 0
                 promise.then(function(response) {
                     scope.commonplaces = response.data;
+                    scope.currentPosition += response.data.length;
                 });
                 scope.displayLimit = 20;
                 scope.loadingData = false;
@@ -22,14 +25,8 @@
                 scope.addMoreResults = function() {
                     scope.loadingData = true;
                     if (typeof(scope.commonplaces !== "undefined")) {
-                        var lastIndex = scope.commonplaces.length - 1;
-                        var lastRow = scope.commonplaces[lastIndex];
-                        commonplaceSortEnd.last_date = lastRow.date;
-                        commonplaceSortEnd.last_author = lastRow.author;
-                        formData.last_author = commonplaceSortEnd.last_author;
-                        formData.last_date = commonplaceSortEnd.last_date;
-                        formData.query_terms = queryTerms;
-                        var urlString = URL.objectToString(formData);
+                        scope.main.commonplace.offset = scope.currentPosition;
+                        urlString = URL.objectToString(scope.main.commonplace);
                         $timeout(function() {
                             usSpinnerService.spin('spinner-2');
                         }, 100);
@@ -38,6 +35,7 @@
                             Array.prototype.push.apply(scope.commonplaces, response.data);
                             usSpinnerService.stop('spinner-2');
                             scope.loadingData = false;
+                            scope.currentPosition += response.data.length;
                         });
                     }
                 }

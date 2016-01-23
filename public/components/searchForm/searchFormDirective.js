@@ -98,7 +98,8 @@
                 scope.commonplaceTerms = {};
                 scope.commonplaceSubmit = function() {
                     hideLandingPage();
-                    var urlString = '/commonplace/' + scope.main.dbActive + '/search?query_terms=' + scope.commonplaceTerms.queryTerms;
+                    var queryString = URL.objectToString(scope.main.commonplace)
+                    var urlString = "/commonplace/" + scope.main.dbActive + "/search?" + queryString;
                     $log.debug(urlString);
                     $location.url(urlString)
                 }
