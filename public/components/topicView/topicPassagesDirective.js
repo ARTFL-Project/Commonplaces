@@ -5,6 +5,14 @@
         .directive('topicPassages', topicPassages);
 
     function topicPassages($location, $http, $log, webConfig, $routeParams) {
+        var getTotalCounts = function(scope) {
+            var urlString = "/api/" + $routeParams.dbname + "/topicCount/" + $routeParams.topicID;
+            scope.waitingForCount = true;
+            $http.get(urlString).then(function(response) {
+                scope.waitingForCount = false;
+                scope.totalCount = response.data.totalCount;
+            });
+        }
         return {
             templateUrl: 'components/topicView/topicPassages.html',
             link: function(scope) {
@@ -18,6 +26,7 @@
                 }
                 var topics = webConfig.databases[dbIndex].topics;
                 scope.displayLimit = 50;
+                scope.loading = true
                 var urlString = "/api/" + $routeParams.dbname + "/topic/" + $routeParams.topicID;
                 var promise = $http.get(urlString);
                 promise.then(function(response) {
@@ -25,6 +34,8 @@
                     scope.currentTopic = topics[$routeParams.topicID];
                     scope.topicPassages = response.data.passages;
                     scope.wordsInTopic = response.data.words;
+                    scope.loading = false;
+                    getTotalCounts(scope);
                 });
                 scope.loadingData = false;
                 scope.addMoreResults = function() {

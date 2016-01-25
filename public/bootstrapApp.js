@@ -2,7 +2,7 @@
     "use strict";
 
     angular
-        .module("DiggingApp", ['ngRoute', 'ngTouch', 'ngSanitize', 'ngCookies', 'angularSpinner', 'infinite-scroll']);
+        .module("DiggingApp", ['ngRoute', 'ngTouch', 'ngSanitize', 'infinite-scroll']);
 
     getConfig().then(bootstrapApplication);
 

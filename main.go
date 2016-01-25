@@ -104,6 +104,10 @@ type (
 		PassageIdentCount *int32  `json:"passageIDCount"`
 	}
 
+	resultCount struct {
+		TotalCount *int32 `json:"totalCount"`
+	}
+
 	urlKeyValue struct {
 		Key   string
 		Value []string
@@ -114,7 +118,7 @@ type (
 
 var webConfig = databaseConfig()
 
-var db, err = sql.Open("mysql", "***REMOVED***@/digging")
+var db, err = sql.Open("mysql", "***REMOVED***@/digging?max_statement_time=50")
 
 var idCountMap = map[string]string{
 	"passageIDCount": "passageidentcount",
@@ -398,6 +402,31 @@ func fullTextQuery(c *echo.Context) error {
 	return c.JSON(200, results)
 }
 
+func fulltextCount(c *echo.Context) error {
+	queryStringMap, _ := url.ParseQuery(c.Request().URL.RawQuery)
+	dbname := c.Param("dbname")
+	delete(queryStringMap, "dbname")
+	var duplicatesID string
+	for _, value := range webConfig.Databases {
+		if dbname == value["dbname"] {
+			duplicatesID = value["duplicatesID"].(string)
+			break
+		}
+	}
+	query := "select count(*) from " + dbname + " where "
+	query += buildQuery(queryStringMap, duplicatesID)
+	var row *sql.Row
+	row = db.QueryRow(query)
+	var totalCount *int32
+	err := row.Scan(&totalCount)
+	if err != nil {
+		c.Error(err)
+		return c.JSON(200, resultCount{totalCount})
+	}
+	result := resultCount{totalCount}
+	return c.JSON(200, result)
+}
+
 func getTopic(c *echo.Context) error {
 	dbname := c.Param("dbname") + "_topics"
 	topicID := c.Param("topicID")
@@ -454,6 +483,27 @@ func getTopic(c *echo.Context) error {
 	words := getWordDistribution(c, c.Param("dbname"), topicID)
 	results := topicResults{topicPassage, words}
 	return c.JSON(200, results)
+}
+
+func getTopicCount(c *echo.Context) error {
+	dbname := c.Param("dbname") + "_topics"
+	topicID := c.Param("topicID")
+	topic, _ := strconv.Atoi(topicID)
+	query := ""
+	// var queryParams []interface{}
+	query += "select count(*) from " + dbname + " where topic=? and matchsize > 10"
+	// queryParams = append(queryParams, topic)
+	fmt.Printf("query is:%s %d \n", query, topic)
+	var row *sql.Row
+	row = db.QueryRow(query, topic)
+	var totalCount *int32
+	err := row.Scan(&totalCount)
+	if err != nil {
+		c.Error(err)
+		fmt.Println(err)
+	}
+	result := resultCount{totalCount}
+	return c.JSON(200, result)
 }
 
 func getWordDistribution(c *echo.Context, dbname string, topic string) string {
@@ -519,6 +569,24 @@ func searchInCommonplace(c *echo.Context) error {
 	return c.JSON(200, commonPlaceResults)
 }
 
+func searchInCommonplaceCount(c *echo.Context) error {
+	dbname := c.Param("dbname") + "_topics"
+	queryStringMap, _ := url.ParseQuery(c.Request().URL.RawQuery)
+	query := fmt.Sprintf("select count(*) from %s where ", dbname)
+	query += buildQuery(queryStringMap, "")
+	fmt.Println(query, queryStringMap)
+	var row *sql.Row
+	row = db.QueryRow(query)
+	var totalCount *int32
+	err := row.Scan(&totalCount)
+	if err != nil {
+		c.Error(err)
+		fmt.Println(err)
+	}
+	result := resultCount{totalCount}
+	return c.JSON(200, result)
+}
+
 func exportConfig(c *echo.Context) error {
 	return c.JSON(200, webConfig)
 }
@@ -579,8 +647,11 @@ func main() {
 	// API calls
 	e.Get("/api/:dbname/commonplaces/:passageID", findCommonPlaces)
 	e.Get("/api/:dbname/fulltext", fullTextQuery)
+	e.Get("/api/:dbname/fulltextcount", fulltextCount)
 	e.Get("/api/:dbname/topic/:topicID", getTopic)
+	e.Get("/api/:dbname/topicCount/:topicID", getTopicCount)
 	e.Get("/api/:dbname/searchincommonplace", searchInCommonplace)
+	e.Get("/api/:dbname/searchincommonplacecount", searchInCommonplaceCount)
 	// Export config
 	e.Get("/config/config.json", exportConfig)
 

@@ -4,9 +4,14 @@
         .module('DiggingApp')
         .directive('commonplaceResults', commonplaceResults);
 
-    function commonplaceResults($location, $routeParams, $http, $log, $timeout, URL, commonplaceSortEnd, usSpinnerService) {
-        var storeQueryEnd = function(scope) {
-
+    function commonplaceResults($location, $routeParams, $http, $log, $timeout, URL, commonplaceSortEnd) {
+        var getTotalCounts = function(scope) {
+            var urlString = URL.objectToString(scope.main.commonplace);
+            scope.waitingForCount = true;
+            $http.get('api/'+ scope.main.dbActive + '/searchincommonplacecount?' + urlString).then(function(response) {
+                scope.waitingForCount = false;
+                scope.totalCount = response.data.totalCount;
+            });
         }
         return {
             templateUrl: "components/commonplaceSearch/commonplaceResults.html",
@@ -15,25 +20,27 @@
                 scope.main.commonplace = $location.search(); // for page reload
                 var promise = $http.get("/api/" + scope.main.dbActive + "/searchincommonplace?" + urlString);
                 scope.currentPosition = 0
+                scope.loading = true;
+                scope.noResults = false;
                 promise.then(function(response) {
                     scope.commonplaces = response.data;
-                    scope.currentPosition += response.data.length;
+                    if (response.data != null) {
+                        scope.currentPosition += response.data.length;
+                    }
+                    scope.loading = false;
+                    getTotalCounts(scope);
                 });
                 scope.displayLimit = 20;
                 scope.loadingData = false;
                 var formData = {};
                 scope.addMoreResults = function() {
                     scope.loadingData = true;
-                    if (typeof(scope.commonplaces !== "undefined")) {
+                    if (typeof(scope.commonplaces !== "undefined") && scope.currentPosition != 0) {
                         scope.main.commonplace.offset = scope.currentPosition;
                         urlString = URL.objectToString(scope.main.commonplace);
-                        $timeout(function() {
-                            usSpinnerService.spin('spinner-2');
-                        }, 100);
                         $http.get('api/' + scope.main.dbActive + "/searchincommonplace?" + urlString).then(function(response) {
                             scope.displayLimit += 40
                             Array.prototype.push.apply(scope.commonplaces, response.data);
-                            usSpinnerService.stop('spinner-2');
                             scope.loadingData = false;
                             scope.currentPosition += response.data.length;
                         });

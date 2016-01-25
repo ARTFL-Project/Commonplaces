@@ -99,6 +99,13 @@
                         });
                     }
                 }
+                scope.formatTitle = function(title) {
+                    if (title.length > 300) {
+                        var titleSplit = title.slice(0, 300).split(' ');
+                        title = titleSplit.slice(0, titleSplit.length-1).join(" ") + " [...]";
+                    }
+                    return title;
+                }
             }
         }
     }

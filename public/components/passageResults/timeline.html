@@ -3,7 +3,7 @@
     <div class="timeline-dates timeline-animate" ng-repeat="event in timeline | limitTo: displayLimit">
       <div class="btn btn-lg btn-default active">{{ event[0] }}</div> <!--date-->
       <div class="timeline-events" ng-repeat="event in event[1] track by $index">
-        <h5 class="event-link" ng-click="getCurrentPassage($event)"><a href="">{{ event.author }}<br><i>{{ event.title }}</i></a></h5>
+        <h5 class="event-link" ng-click="getCurrentPassage($event)"><a href="">{{ event.author }}<br><i>{{ formatTitle(event.title) }}</i></a></h5>
         <p class="timeline-text-content">
             <span class="text-content">
                 {{ event.leftContext }}

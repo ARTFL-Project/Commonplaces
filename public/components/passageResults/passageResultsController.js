@@ -6,7 +6,7 @@
 	.module('DiggingApp')
 	.controller('PassageController', PassageController);
 
-	function PassageController($scope, $http, $location, $routeParams, $anchorScroll, $timeout, URL, usSpinnerService) {
+	function PassageController($scope, $http, $location, $routeParams, $anchorScroll, $timeout, URL) {
 		var vm = this;
 		vm.formData = $location.search();
 
@@ -16,7 +16,6 @@
             vm.results = response.data;
             vm.timeline = [];
             vm.count = response.data.length;
-            usSpinnerService.stop('spinner-1');
             vm.resultsView = "timeline";
             $scope.main.hideSearchForm = true;
         });

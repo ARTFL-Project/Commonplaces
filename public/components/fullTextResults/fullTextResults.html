@@ -1,6 +1,10 @@
 <div id="full-text-results">
-    <!-- <span spinner-key="spinner-1" us-spinner="{radius:25, width:4, length: 16, scale: 0.75, speed: 1.5, fps: 30, top: '35%', color: ['#5B96AD', '#155F83', '#15435F']}" ng-if="fullTextResults.fullList != null"></span> -->
-    <h4 ng-if="fullTextResults.fullList == null">Your query returned no results</h4>
+    <spinner show="{{ loading }}"></spinner>
+    <h4 ng-if="!loading">
+        Your query returned
+        <span class="dots" ng-if="waitingForCount"><span>.</span><span>.</span><span>.</span></span>
+        {{ totalCount }} results
+    </h4>
     <div infinite-scroll="addMoreResults()" infinite-scroll-distance="1" infinite-scroll-disabled="loadingData" infinite-scroll-immediate-check="false">
         <div class="panel panel-default result alignment" ng-repeat="result in fullTextResults.fullList | limitTo: displayLimit track by $index">
             <h5 class="result-number">{{ ::$index + 1}}</h5>
@@ -43,7 +47,6 @@
         </div>
         <div style="text-align: center;" ng-show="loadingData">
             <h4>Loading data...</h4>
-            <span spinner-key="spinner-2" us-spinner="{radius:25, width:4, length: 16, scale: 0.75, speed: 1.5, fps: 30, top: '35%', color: ['#5B96AD', '#155F83', '#15435F']}"></span>
         </div>
     </div>
 </div>

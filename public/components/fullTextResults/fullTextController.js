@@ -6,7 +6,7 @@
 	.module('DiggingApp')
 	.controller('FullTextController', FullTextController);
 
-	function FullTextController($scope, $http, $location, $routeParams, $anchorScroll, $timeout, URL, usSpinnerService) {
+	function FullTextController($scope, $http, $location, $routeParams, $anchorScroll, $timeout, URL) {
 		var vm = this;
         $scope.main.hideSearchForm = true;
     }
