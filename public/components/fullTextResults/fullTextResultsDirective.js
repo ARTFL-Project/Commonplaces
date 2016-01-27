@@ -17,6 +17,7 @@
             restrict: 'E',
             templateUrl: 'components/fullTextResults/fullTextResults.html',
             link: function(scope, element, attrs) {
+                scope.main.queryType = "sharedPassages";
                 scope.dbname = $routeParams.dbname;
                 scope.main.dbActive = scope.dbname;
                 scope.main.formData = angular.copy($location.search());

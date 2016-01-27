@@ -108,6 +108,11 @@ type (
 		TotalCount *int32 `json:"totalCount"`
 	}
 
+	facetCount struct {
+		Facet *string `json:"facet"`
+		Count *int32  `json:"count"`
+	}
+
 	urlKeyValue struct {
 		Key   string
 		Value []string
@@ -427,6 +432,55 @@ func fulltextCount(c *echo.Context) error {
 	return c.JSON(200, result)
 }
 
+func fulltextFacet(c *echo.Context) error {
+	queryStringMap, _ := url.ParseQuery(c.Request().URL.RawQuery)
+	dbname := c.Param("dbname")
+	delete(queryStringMap, "dbname")
+	var duplicatesID string
+	for _, value := range webConfig.Databases {
+		if dbname == value["dbname"] {
+			duplicatesID = value["duplicatesID"].(string)
+			break
+		}
+	}
+	facetType := queryStringMap["facet"][0]
+	delete(queryStringMap, "facet")
+	condition := buildQuery(queryStringMap, duplicatesID)
+	var query string
+	if facetType == "sourcedate" || facetType == "targetdate" {
+		query = fmt.Sprintf("select concat(decade, '-', decade + 9) as year, count(*) from (select floor(`%s` / 10) * 10 as decade from %s where %s) t group by decade order by count(*) desc limit 100", facetType, dbname, condition)
+	} else {
+		query = fmt.Sprintf("select %s, count(*) from "+dbname+" where ", facetType)
+		query += condition
+		query += fmt.Sprintf(" group by %s order by count(*) desc limit 100", facetType)
+	}
+
+	fmt.Println(query)
+
+	var err error
+	var rows *sql.Rows
+	rows, err = db.Query(query)
+	if err != nil {
+		var emptyResults []fullTextResultObject
+		c.Error(err)
+		return c.JSON(200, fullTextResults{emptyResults})
+	}
+
+	defer rows.Close()
+
+	var results []facetCount
+	for rows.Next() {
+		var facet *string
+		var totalCount *int32
+		newErr := rows.Scan(&facet, &totalCount)
+		if newErr != nil {
+			c.Error(newErr)
+		}
+		results = append(results, facetCount{facet, totalCount})
+	}
+	return c.JSON(200, results)
+}
+
 func getTopic(c *echo.Context) error {
 	dbname := c.Param("dbname") + "_topics"
 	topicID := c.Param("topicID")
@@ -504,6 +558,46 @@ func getTopicCount(c *echo.Context) error {
 	}
 	result := resultCount{totalCount}
 	return c.JSON(200, result)
+}
+
+func getTopicFacet(c *echo.Context) error {
+	dbname := c.Param("dbname") + "_topics"
+	topicID := c.Param("topicID")
+	topic, _ := strconv.Atoi(topicID)
+	queryStringMap, _ := url.ParseQuery(c.Request().URL.RawQuery)
+	facetType := queryStringMap["facet"][0]
+	delete(queryStringMap, "facet")
+	var query string
+	if facetType == "date" {
+		query += fmt.Sprintf("select concat(decade, '-', decade + 9) as year, count(*) from (select floor(`%s` / 10) * 10 as decade from %s where topic=? and matchsize > 10) t group by decade order by count(*) desc limit 100", facetType, dbname)
+	} else {
+		query += fmt.Sprintf("select %s, count(*) from %s where topic=? and matchsize > 10 group by %s order by count(*) desc limit 100", facetType, dbname, facetType)
+	}
+
+	fmt.Printf("facet query is:%s %d\n", query, topic)
+
+	var err error
+	var rows *sql.Rows
+	rows, err = db.Query(query, topic)
+	if err != nil {
+		var emptyResults []fullTextResultObject
+		c.Error(err)
+		return c.JSON(200, fullTextResults{emptyResults})
+	}
+
+	defer rows.Close()
+
+	var results []facetCount
+	for rows.Next() {
+		var facet *string
+		var totalCount *int32
+		newErr := rows.Scan(&facet, &totalCount)
+		if newErr != nil {
+			c.Error(newErr)
+		}
+		results = append(results, facetCount{facet, totalCount})
+	}
+	return c.JSON(200, results)
 }
 
 func getWordDistribution(c *echo.Context, dbname string, topic string) string {
@@ -587,6 +681,47 @@ func searchInCommonplaceCount(c *echo.Context) error {
 	return c.JSON(200, result)
 }
 
+func commonplaceFacet(c *echo.Context) error {
+	queryStringMap, _ := url.ParseQuery(c.Request().URL.RawQuery)
+	dbname := c.Param("dbname") + "_topics"
+	facetType := queryStringMap["facet"][0]
+	delete(queryStringMap, "facet")
+	condition := buildQuery(queryStringMap, "")
+	var query string
+	if facetType == "date" {
+		query = fmt.Sprintf("select concat(decade, '-', decade + 9) as year, count(*) from (select floor(`%s` / 10) * 10 as decade from %s where %s) t group by decade order by count(*) desc limit 100", facetType, dbname, condition)
+	} else {
+		query = fmt.Sprintf("select %s, count(*) from "+dbname+" where ", facetType)
+		query += condition
+		query += fmt.Sprintf(" group by %s order by count(*) desc limit 100", facetType)
+	}
+
+	fmt.Println(query)
+
+	var err error
+	var rows *sql.Rows
+	rows, err = db.Query(query)
+	if err != nil {
+		var emptyResults []fullTextResultObject
+		c.Error(err)
+		return c.JSON(200, fullTextResults{emptyResults})
+	}
+
+	defer rows.Close()
+
+	var results []facetCount
+	for rows.Next() {
+		var facet *string
+		var totalCount *int32
+		newErr := rows.Scan(&facet, &totalCount)
+		if newErr != nil {
+			c.Error(newErr)
+		}
+		results = append(results, facetCount{facet, totalCount})
+	}
+	return c.JSON(200, results)
+}
+
 func exportConfig(c *echo.Context) error {
 	return c.JSON(200, webConfig)
 }
@@ -639,7 +774,6 @@ func main() {
 	e.Index("public/index.html")
 
 	// Routes
-	// e.Get("/", index)
 	e.Get("/passage/:dbname/:passageID", index)
 	e.Get("/query/:dbname/search", index)
 	e.Get("/topic/:dbname/:topicID", index)
@@ -648,10 +782,13 @@ func main() {
 	e.Get("/api/:dbname/commonplaces/:passageID", findCommonPlaces)
 	e.Get("/api/:dbname/fulltext", fullTextQuery)
 	e.Get("/api/:dbname/fulltextcount", fulltextCount)
+	e.Get("/api/:dbname/fulltextfacet", fulltextFacet)
 	e.Get("/api/:dbname/topic/:topicID", getTopic)
+	e.Get("/api/:dbname/topicFacet/:topicID", getTopicFacet)
 	e.Get("/api/:dbname/topicCount/:topicID", getTopicCount)
 	e.Get("/api/:dbname/searchincommonplace", searchInCommonplace)
 	e.Get("/api/:dbname/searchincommonplacecount", searchInCommonplaceCount)
+	e.Get("/api/:dbname/commonplacefacet", commonplaceFacet)
 	// Export config
 	e.Get("/config/config.json", exportConfig)
 

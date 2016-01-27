@@ -16,6 +16,7 @@
         return {
             templateUrl: "components/commonplaceSearch/commonplaceResults.html",
             link: function(scope) {
+                scope.main.queryType = "commonplaces";
                 var urlString = URL.objectToString($location.search());
                 scope.main.commonplace = $location.search(); // for page reload
                 var promise = $http.get("/api/" + scope.main.dbActive + "/searchincommonplace?" + urlString);

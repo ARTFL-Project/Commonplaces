@@ -14,6 +14,7 @@
             vm.webConfig = webConfig;
             vm.debug = webConfig.debug;
             vm.description = false;
+            vm.queryType = "sharedPassages";
             vm.formData = {};
             vm.formData.duplicates = "ignore";
             vm.formData.sorting = -1;

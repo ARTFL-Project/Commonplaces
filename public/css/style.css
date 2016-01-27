@@ -24,7 +24,7 @@ body {
 }
 .navbar {
   /*box-shadow: 0 .2em 8px .01em rgba(0, 0, 0, 0.2);*/
-  box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
 }
 .navbar-brand, .navbar-inverse a {
   color: rgb(236, 237, 238) !important;
@@ -62,7 +62,6 @@ body {
   border-color: transparent;
 }
 
-
 /* Links */
 
 a {
@@ -74,12 +73,9 @@ a:hover {
   color: rgb(128, 0, 0) !important;
   text-decoration: none;
 }
-/*#landing-page-container {
-  position: absolute;
-}*/
 #fulltext-search, #metadata-search, #section-container {
   /*box-shadow: 1px 1px 5px #555;*/
-  box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
 }
 
 /*Search form*/
@@ -102,6 +98,9 @@ form h4, #section-container h4 {
   padding-bottom: 10px;
   padding-top: 10px;
   text-align: left;
+}
+#full-text-container {
+  margin-top: 30px;
 }
 #results, #full-text-container {
   transition: all ease-out 300ms;
@@ -234,47 +233,117 @@ form h4, #section-container h4 {
 }
 
 /*Header*/
+
 nav > div > div.navbar-header > a {
   font-variant: small-caps;
   font-size: 2em;
 }
-
 #source-selection {
-    text-align: center;
+  text-align: center;
 }
 .popover {
-    max-width: 400px;
+  max-width: 400px;
 }
 #topic-results {
-    padding: 0px 15px;
+  padding: 0px 15px;
+}
+
+/*Facet*/
+
+#facet-search {
+  position: relative;
+  z-index: 50;
+}
+#facet-selection {
+  position: absolute;
+  right: 0;
+  top: -25px;
+}
+.dropdown-header {
+  font-size: inherit;
+}
+.facet-results {
+  padding: 10px;
+  position: absolute;
+  z-index: 50;
+  width: 30%;
+  right: 0;
+  top: 10px;
+}
+.close-facets {
+  position: absolute;
+  padding: 2px 5px;
+  top: 0;
+  left: 0;
 }
 
 /*Ellipsis animation*/
-@keyframes dots-1 { from { opacity: 0; } 25% { opacity: 1; } }
-@keyframes dots-2 { from { opacity: 0; } 50% { opacity: 1; } }
-@keyframes dots-3 { from { opacity: 0; } 75% { opacity: 1; } }
-@-webkit-keyframes dots-1 { from { opacity: 0; } 25% { opacity: 1; } }
-@-webkit-keyframes dots-2 { from { opacity: 0; } 50% { opacity: 1; } }
-@-webkit-keyframes dots-3 { from { opacity: 0; } 75% { opacity: 1; } }
 
+@keyframes dots-1 {
+  from {
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+}
+@keyframes dots-2 {
+  from {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes dots-3 {
+  from {
+    opacity: 0;
+  }
+  75% {
+    opacity: 1;
+  }
+}
+@-webkit-keyframes dots-1 {
+  from {
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+}
+@-webkit-keyframes dots-2 {
+  from {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@-webkit-keyframes dots-3 {
+  from {
+    opacity: 0;
+  }
+  75% {
+    opacity: 1;
+  }
+}
 .dots span {
-    animation: dots-1 1s infinite steps(1);
-    -webkit-animation: dots-1 1s infinite steps(1);
+  animation: dots-1 1s infinite steps(1);
+  -webkit-animation: dots-1 1s infinite steps(1);
 }
-
 .dots span:first-child + span {
-    animation-name: dots-2;
-    -webkit-animation-name: dots-2;
+  animation-name: dots-2;
+  -webkit-animation-name: dots-2;
 }
-
 .dots span:first-child + span + span {
-    animation-name: dots-3;
-    -webkit-animation-name: dots-3;
+  animation-name: dots-3;
+  -webkit-animation-name: dots-3;
 }
 
 /*Loading animation*/
+
 .spinner-wrapper {
-    position: relative;
+  position: relative;
 }
 .showbox {
   position: absolute;
@@ -285,7 +354,6 @@ nav > div > div.navbar-header > a {
   right: 0;
   padding: 5%;
 }
-
 .loader {
   position: relative;
   margin: 0px auto;
@@ -296,13 +364,12 @@ nav > div > div.navbar-header > a {
   display: block;
   padding-top: 100%;
 }
-
 .circular {
   -webkit-animation: rotate 2s linear infinite;
-          animation: rotate 2s linear infinite;
+  animation: rotate 2s linear infinite;
   height: 100%;
   -webkit-transform-origin: center center;
-          transform-origin: center center;
+  transform-origin: center center;
   width: 100%;
   position: absolute;
   top: 0;
@@ -311,53 +378,50 @@ nav > div > div.navbar-header > a {
   right: 0;
   margin: auto;
 }
-
 .path {
-  stroke-dasharray: 1,200;
+  stroke-dasharray: 1, 200;
   stroke-dashoffset: 0;
   -webkit-animation: dash 1.5s ease-in-out infinite, color 6s ease-in-out infinite;
-          animation: dash 1.5s ease-in-out infinite, color 6s ease-in-out infinite;
+  animation: dash 1.5s ease-in-out infinite, color 6s ease-in-out infinite;
   stroke-linecap: round;
 }
-
 @-webkit-keyframes rotate {
   100% {
     -webkit-transform: rotate(360deg);
-            transform: rotate(360deg);
+    transform: rotate(360deg);
   }
 }
-
 @keyframes rotate {
   100% {
     -webkit-transform: rotate(360deg);
-            transform: rotate(360deg);
+    transform: rotate(360deg);
   }
 }
 @-webkit-keyframes dash {
   0% {
-    stroke-dasharray: 1,200;
+    stroke-dasharray: 1, 200;
     stroke-dashoffset: 0;
   }
   50% {
-    stroke-dasharray: 89,200;
+    stroke-dasharray: 89, 200;
     stroke-dashoffset: -35px;
   }
   100% {
-    stroke-dasharray: 89,200;
+    stroke-dasharray: 89, 200;
     stroke-dashoffset: -124px;
   }
 }
 @keyframes dash {
   0% {
-    stroke-dasharray: 1,200;
+    stroke-dasharray: 1, 200;
     stroke-dashoffset: 0;
   }
   50% {
-    stroke-dasharray: 89,200;
+    stroke-dasharray: 89, 200;
     stroke-dashoffset: -35px;
   }
   100% {
-    stroke-dasharray: 89,200;
+    stroke-dasharray: 89, 200;
     stroke-dashoffset: -124px;
   }
 }

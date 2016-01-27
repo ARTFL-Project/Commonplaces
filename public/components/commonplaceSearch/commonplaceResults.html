@@ -1,10 +1,11 @@
 <div infinite-scroll="addMoreResults()" infinite-scroll-distance="1" infinite-scroll-disabled="loadingData" infinite-scroll-immediate-check="false">
+    <spinner show="{{ loading }}"></spinner>
     <h4 ng-if="!loading">
         Your query returned
         <span class="dots" ng-if="waitingForCount"><span>.</span><span>.</span><span>.</span></span>
         {{ totalCount }} results
     </h4>
-    <spinner show="{{ loading }}"></spinner>
+    <facet-search></facet-search>
     <div class="panel panel-default result alignment" ng-repeat="passage in commonplaces | limitTo: displayLimit track by $index">
         <h5 class="result-number">{{ ::$index + 1}}</h5>
         <h5>

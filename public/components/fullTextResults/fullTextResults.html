@@ -5,6 +5,7 @@
         <span class="dots" ng-if="waitingForCount"><span>.</span><span>.</span><span>.</span></span>
         {{ totalCount }} results
     </h4>
+    <facet-search></facet-search>
     <div infinite-scroll="addMoreResults()" infinite-scroll-distance="1" infinite-scroll-disabled="loadingData" infinite-scroll-immediate-check="false">
         <div class="panel panel-default result alignment" ng-repeat="result in fullTextResults.fullList | limitTo: displayLimit track by $index">
             <h5 class="result-number">{{ ::$index + 1}}</h5>

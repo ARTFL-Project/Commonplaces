@@ -16,6 +16,9 @@
         return {
             templateUrl: 'components/topicView/topicPassages.html',
             link: function(scope) {
+                scope.main.queryType = "topicView";
+                scope.dbname = $routeParams.dbname;
+                scope.main.dbActive = scope.dbname;
                 scope.debug = webConfig.debug;
                 var dbIndex = 0;
                 for (var i=0; i < webConfig.databases.length; i+=1) {
