@@ -23,9 +23,9 @@ type (
 	}
 
 	config struct {
-		Port      string                   `json:"port"`
-		Databases []map[string]interface{} `json:"databases"`
-		Debug     bool                     `json:"debug"`
+		Port      string                            `json:"port"`
+		Databases map[string]map[string]interface{} `json:"databases"`
+		Debug     bool                              `json:"debug"`
 	}
 
 	resultObject struct {
@@ -198,7 +198,13 @@ func buildQuery(queryStringMap map[string][]string, duplicatesID string) string 
 					if param == "duplicates" {
 						paramValue = fmt.Sprintf("passageident!=%s", duplicatesID)
 					} else if param == "bible" {
-						paramValue = fmt.Sprintf("authorident!=1")
+						if value == "ignore" {
+							paramValue = fmt.Sprintf("authorident!=1")
+						} else if value == "only" {
+							paramValue = fmt.Sprintf("authorident=1")
+						} else {
+							continue
+						}
 					} else if _, ok := fullTextFields[param]; ok {
 						value = parseQuery(value)
 						if strings.HasPrefix(value, "NOT ") {
@@ -208,6 +214,10 @@ func buildQuery(queryStringMap map[string][]string, duplicatesID string) string 
 						} else {
 							paramValue = fmt.Sprintf("MATCH(%s) AGAINST('%s' IN BOOLEAN MODE)", param, value)
 						}
+					} else if strings.HasSuffix(param, "_exact") {
+						param = strings.Replace(param, "_exact", "", 1)
+						fmt.Println(param)
+						paramValue = fmt.Sprintf(`%s="%s"`, param, value)
 					} else {
 						dateRange := strings.Split(value, "-")
 						if len(dateRange) == 2 {
@@ -332,13 +342,7 @@ func fullTextQuery(c *echo.Context) error {
 		delete(queryStringMap, "offset")
 		continued = true
 	}
-	var duplicatesID string
-	for _, value := range webConfig.Databases {
-		if dbname == value["dbname"] {
-			duplicatesID = value["duplicatesID"].(string)
-			break
-		}
-	}
+	duplicatesID := webConfig.Databases[dbname]["duplicatesID"].(string)
 	query := "select sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcephiloid, sourcedatabasename, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetphiloid, targetdatabasename, passageident, passageidentcount from " + dbname + " where "
 	sorting := strings.Join(sortKeyMap[queryStringMap["sorting"][0]], ", ")
 	query += buildQuery(queryStringMap, duplicatesID)
@@ -411,13 +415,7 @@ func fulltextCount(c *echo.Context) error {
 	queryStringMap, _ := url.ParseQuery(c.Request().URL.RawQuery)
 	dbname := c.Param("dbname")
 	delete(queryStringMap, "dbname")
-	var duplicatesID string
-	for _, value := range webConfig.Databases {
-		if dbname == value["dbname"] {
-			duplicatesID = value["duplicatesID"].(string)
-			break
-		}
-	}
+	duplicatesID := webConfig.Databases[dbname]["duplicatesID"].(string)
 	query := "select count(*) from " + dbname + " where "
 	query += buildQuery(queryStringMap, duplicatesID)
 	var row *sql.Row
@@ -436,13 +434,7 @@ func fulltextFacet(c *echo.Context) error {
 	queryStringMap, _ := url.ParseQuery(c.Request().URL.RawQuery)
 	dbname := c.Param("dbname")
 	delete(queryStringMap, "dbname")
-	var duplicatesID string
-	for _, value := range webConfig.Databases {
-		if dbname == value["dbname"] {
-			duplicatesID = value["duplicatesID"].(string)
-			break
-		}
-	}
+	duplicatesID := webConfig.Databases[dbname]["duplicatesID"].(string)
 	facetType := queryStringMap["facet"][0]
 	delete(queryStringMap, "facet")
 	condition := buildQuery(queryStringMap, duplicatesID)
@@ -485,28 +477,29 @@ func getTopic(c *echo.Context) error {
 	dbname := c.Param("dbname") + "_topics"
 	topicID := c.Param("topicID")
 	topic, _ := strconv.Atoi(topicID)
-	lastTopicWeightParam := c.Query("topicWeight")
-	var lastTopicWeight float64
-	var firstQuery bool
-	if lastTopicWeightParam != "" {
-		lastTopicWeight, _ = strconv.ParseFloat(lastTopicWeightParam, 32)
-		firstQuery = false
-	} else {
-		firstQuery = true
+	queryStringMap, _ := url.ParseQuery(c.Request().URL.RawQuery)
+	continued := false
+	var offset int
+	if _, ok := queryStringMap["offset"]; ok {
+		offset, _ = strconv.Atoi(queryStringMap["offset"][0])
+		delete(queryStringMap, "offset")
+		continued = true
 	}
-	fmt.Println(firstQuery)
-	query := ""
-	var queryParams []interface{}
-	if firstQuery {
-		query += "select author, title, date, leftcontext, matchcontext, rightcontext, passageident, passageidentcount, topic_weight from " + dbname + " where topic=? and matchsize > 10 order by topic_weight desc limit 50"
-		queryParams = append(queryParams, topic)
-		fmt.Printf("query is:%s %d\n", query, topic)
-	} else {
-		query += "select author, title, date, leftcontext, matchcontext, rightcontext, passageident, passageidentcount, topic_weight from " + dbname + " where topic=? and matchsize > 10 and topic_weight < ? order by topic_weight desc limit 100"
-		queryParams = append(queryParams, topic, lastTopicWeight)
-		fmt.Printf("query is:%s %d %f\n", query, topic, lastTopicWeight)
+	query := "select author, title, date, leftcontext, matchcontext, rightcontext, passageident, passageidentcount, topic_weight from " + dbname + " where "
+	condition := buildQuery(queryStringMap, "")
+	fmt.Println("RAw query", c.Request().URL.RawQuery)
+	if condition != "" {
+		query += fmt.Sprintf(" %s and ", condition)
 	}
-	rows, err := db.Query(query, queryParams...)
+	query += fmt.Sprintf("topic=%d and matchsize > 10 order by topic_weight desc", topic)
+
+	if continued {
+		query += fmt.Sprintf(" limit %d, 100", offset)
+	} else {
+		query += " limit 50"
+	}
+	fmt.Println(query)
+	rows, err := db.Query(query)
 
 	fmt.Println(topic)
 	if err != nil {
@@ -728,6 +721,11 @@ func exportConfig(c *echo.Context) error {
 
 func index(c *echo.Context) error {
 	var empty interface{}
+	if webConfig.Debug {
+		c.Response().Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+		c.Response().Header().Set("Pragma", "no-cache")
+		c.Response().Header().Set("Expires", "0")
+	}
 	return c.Render(200, "index.html", empty)
 }
 

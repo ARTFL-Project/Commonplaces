@@ -21,7 +21,12 @@
             {{ ::passage.rightContext}}
         </p>
         <p>
-            <a href="/passage/{{ main.dbActive }}/{{passage.passageID}}">View similar passages in timeline ({{ passage.passageIDCount }} PhiloLine matching pairs)</a>
+            <a href="/passage/{{ main.dbActive }}/{{passage.passageID}}" ng-if="passage.passageIDCount > 1">
+                View similar passages in timeline
+                <span ng-if="main.webConfig.debug">
+                    ({{ passage.passageIDCount }} PhiloLine matching pairs)
+                </span>
+            </a>
         </p>
     </div>
     <div style="text-align: center;" ng-show="loadingData">

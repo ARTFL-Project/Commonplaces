@@ -27,8 +27,13 @@
                 </span>
                 {{ ::passage.rightContext}}
             </p>
-            <p ng-if="passage.passageIDCount > 10">
-                This may be a commonplace: <a href="/passage/{{ main.dbActive }}/{{passage.passageID}}">view all similar passages</a>
+            <p ng-if="passage.passageIDCount > 1">
+                <a href="/passage/{{ main.dbActive }}/{{passage.passageID}}">
+                    View similar passages in timeline
+                    <span ng-if="main.webConfig.debug">
+                        ({{ passage.passageIDCount }} PhiloLine matching pairs)
+                    </span>
+                </a>
             </p>
         </div>
         <div style="text-align: center;" ng-show="loadingData">

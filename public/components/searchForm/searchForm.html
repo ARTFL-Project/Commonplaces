@@ -11,7 +11,7 @@
                             Inside passages:
                         </div>
                         <div class="col-xs-12 col-sm-9">
-                            <input class="form-control" ng-model="main.commonplace.matchcontext" placeholder="e.g., vertu" type="text">
+                            <input class="form-control" ng-model="main.commonplace.matchcontext" placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.sourcematchcontext }}" type="text">
                         </div>
                     </div>
                     <div class="row search-field">
@@ -19,7 +19,7 @@
                             Author:
                         </div>
                         <div class="col-xs-12 col-sm-9">
-                            <input class="form-control" ng-model="main.commonplace.author" placeholder="e.g., Shakespeare" type="text">
+                            <input class="form-control" ng-model="main.commonplace.author" placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.sourceauthor }}" type="text">
                         </div>
                     </div>
                     <div class="row search-field">
@@ -27,7 +27,7 @@
                             Title:
                         </div>
                         <div class="col-xs-12 col-sm-9">
-                            <input class="form-control" ng-model="main.commonplace.title" placeholder="e.g., Hamlet" type="text">
+                            <input class="form-control" ng-model="main.commonplace.title" placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.sourcetitle }}" type="text">
                         </div>
                     </div>
                     <div class="row search-field pull-right">
@@ -42,6 +42,19 @@
             <span class="glyphicon glyphicon-chevron-right" style="display: none; position: absolute; left: 5px; top: 5px"></span>
             <span class="glyphicon glyphicon-chevron-down" style="display: none; position: absolute; left: 5px; top: 5px"></span>
             <h4>Search all Shared Passages</h4>
+            <div class="hiding-element" style="text-align: justify !important;margin-bottom: 10px;margin-top: -15px;">
+                <span class="exclamation-point">&#33;</span>
+                <a tabindex="0" role="button" data-toggle="popover" data-html="true" data-trigger="focus" title="Query Syntax" data-content="<p>For multiple-term queries, you need to separate words with the
+                <b>AND</b> or <b>OR</b> operator.
+                <br>Example: <tt>liberty AND people</tt></p>
+                <p>
+                    You can also negate a match by prepending <b>NOT</b> before the word.
+                    <br>Example: <tt>liberty AND NOT people</tt>
+                </p>
+                <p>
+                    Any custom sorting will considerably slow down response times
+                </p>">Important note about searching</a>
+            </div>
             <div class="row hiding-element" style="margin: 0">
                 <div style="position: absolute; left: 50%; transform: translate(-50%,150%); z-index: 10;">
                     <h1 style="margin-left: -20px">=></h1>
@@ -57,7 +70,7 @@
                                     Inside passages:
                                 </div>
                                 <div class="col-xs-12 col-sm-9">
-                                    <input class="form-control" ng-model="main.formData.sourcematchcontext" placeholder="e.g., vertu" type="text">
+                                    <input class="form-control" ng-model="main.formData.sourcematchcontext" placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.sourcematchcontext }}" type="text">
                                 </div>
                             </div>
                         </div>
@@ -67,7 +80,7 @@
                                     Author:
                                 </div>
                                 <div class="col-xs-12 col-sm-9">
-                                    <input class="form-control" ng-model="main.formData.sourceauthor" placeholder="e.g., Shakespeare" type="text">
+                                    <input class="form-control" ng-model="main.formData.sourceauthor" placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.sourceauthor }}" type="text">
                                 </div>
                             </div>
                         </div>
@@ -77,17 +90,17 @@
                                     Title:
                                 </div>
                                 <div class="col-xs-12 col-sm-9">
-                                    <input class="form-control" ng-model="main.formData.sourcetitle" placeholder="e.g., Hamlet" type="text">
+                                    <input class="form-control" ng-model="main.formData.sourcetitle" placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.sourcetitle }}" type="text">
                                 </div>
                             </div>
                         </div>
-                        <div class="col-xs-12">
+                        <div class="col-xs-12" ng-if="main.dbActive !== 'latin'">
                             <div class="row search-field">
                                 <div class="col-xs-12 col-sm-3">
                                     Date:
                                 </div>
                                 <div class="col-xs-12 col-sm-9">
-                                    <input class="form-control" ng-model="main.formData.sourcedate" placeholder="e.g., 1728" type="text">
+                                    <input class="form-control" ng-model="main.formData.sourcedate" placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.sourcedate }}" type="text">
                                 </div>
                             </div>
                         </div>
@@ -114,7 +127,7 @@
                                     Inside passages:
                                 </div>
                                 <div class="col-xs-12 col-sm-9">
-                                    <input class="form-control" ng-model="main.formData.targetmatchcontext" placeholder="e.g., vertu" type="text">
+                                    <input class="form-control" ng-model="main.formData.targetmatchcontext" placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.targetmatchcontext }}" type="text">
                                 </div>
                             </div>
                         </div>
@@ -124,7 +137,7 @@
                                     Author:
                                 </div>
                                 <div class="col-xs-12 col-sm-9">
-                                    <input class="form-control" ng-model="main.formData.targetauthor" placeholder="e.g., Shakespeare" type="text">
+                                    <input class="form-control" ng-model="main.formData.targetauthor" placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.targetauthor }}" type="text">
                                 </div>
                             </div>
                         </div>
@@ -134,7 +147,7 @@
                                     Title:
                                 </div>
                                 <div class="col-xs-12 col-sm-9">
-                                    <input class="form-control" ng-model="main.formData.targettitle" placeholder="e.g., Hamlet" type="text">
+                                    <input class="form-control" ng-model="main.formData.targettitle" placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.targettitle }}" type="text">
                                 </div>
                             </div>
                         </div>
@@ -144,7 +157,7 @@
                                     Date:
                                 </div>
                                 <div class="col-xs-12 col-sm-9">
-                                    <input class="form-control" ng-model="main.formData.targetdate" placeholder="e.g., 1728" type="text">
+                                    <input class="form-control" ng-model="main.formData.targetdate" placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.targetdate }}" type="text">
                                 </div>
                             </div>
                         </div>
@@ -153,55 +166,51 @@
             </div>
             <div class="row hiding-element">
                 <div class="col-xs-12 col-sm-10">
-                    <div style="text-align: justify !important;">
-                        <span class="exclamation-point">&#33;</span>
-                        <a tabindex="0" role="button" data-toggle="popover" data-html="true" data-trigger="focus" title="Query Syntax" data-content="<p>For multiple-term queries, you need to separate words with the
-                        <b>AND</b> or <b>OR</b> operator.
-                        <br>Example: <tt>liberty AND people</tt></p>
-                        <p>
-                            You can also negate a match by prepending <b>NOT</b> before the word.
-                            <br>Example: <tt>liberty AND NOT people</tt>
-                        </p>
-                        <p>
-                            Any custom sorting will considerably slow down response times
-                        </p>">Important note about searching</a>
-                    </div>
-                    <div class="row search-field">
-                        <div class="col-xs-6">
-                            Sort results by:
-                            <div class="dropdown" style="display: inline">
-                                <button aria-expanded="true" aria-haspopup="true" class="btn btn-default dropdown-toggle" data-toggle="dropdown" id="dropdownMenu1" type="button">
-                                    {{ sorting }}
-                                    <span class="caret"></span>
-                                </button>
-                                <ul aria-labelledby="dropdownMenu1" class="dropdown-menu">
-                                    <li ng-click="selectSorting(-1)">
-                                        <a href="">No sorting</a>
-                                    </li>
-                                    <li ng-click="selectSorting(0)">
-                                        <a href="">Commonplace Probability</a>
-                                    </li>
-                                    <li ng-click="selectSorting(1)">
-                                        <a href="">Target date, author</a>
-                                    </li>
-                                    <li ng-click="selectSorting(2)">
-                                        <a href="">Source date, author</a>
-                                    </li>
-                                    <li ng-click="selectSorting(3)">
-                                        <a href="">Target author</a>
-                                    </li>
-                                    <li ng-click="selectSorting(4)">
-                                        <a href="">Source author</a>
-                                    </li>
-                                </ul>
+                    <div class="search-field">
+                        Sort results by:
+                        <div class="dropup" style="display: inline">
+                            <button aria-expanded="true" aria-haspopup="true" class="btn btn-default dropdown-toggle" data-toggle="dropdown" id="dropdownMenu1" type="button">
+                                {{ sorting }}
+                                <span class="caret"></span>
+                            </button>
+                            <ul aria-labelledby="dropdownMenu1" class="dropdown-menu">
+                                <li ng-click="selectSorting(-1)">
+                                    <a href="">No sorting</a>
+                                </li>
+                                <li ng-click="selectSorting(0)">
+                                    <a href="">Commonplace Probability</a>
+                                </li>
+                                <li ng-click="selectSorting(1)">
+                                    <a href="">Target date, author</a>
+                                </li>
+                                <li ng-click="selectSorting(2)">
+                                    <a href="">Source date, author</a>
+                                </li>
+                                <li ng-click="selectSorting(3)">
+                                    <a href="">Target author</a>
+                                </li>
+                                <li ng-click="selectSorting(4)">
+                                    <a href="">Source author</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div style="display: inline; margin-left: 10px;" ng-if="main.dbActive !== 'latin'">
+                            Bible Filter:
+                            <div class="dropup" style="display: inline">
+                              <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                {{ bibleFilter }}
+                                <span class="caret"></span>
+                              </button>
+                              <ul class="dropdown-menu" aria-labelledby="dropdownMenu2">
+                                <li><a href="#" ng-click="bibleFiltering(0)">Filter out Bible sources</a></li>
+                                <li><a href="#" ng-click="bibleFiltering(1)">Filter out non-Bible sources</a></li>
+                                <li><a href="#" ng-click="bibleFiltering(2)">No filter</a></li>
+                              </ul>
                             </div>
                         </div>
-                        <div class="col-xs-6">
-                            <span ng-show="main.webConfig.debug">
-                                <input ng-model="main.formData.duplicates" ng-true-value="'ignore'" type="checkbox">&nbsp;Ignore matches from duplicate works<br>
-                            </span>
-                            <input ng-model="main.formData.bible" ng-true-value="'ignore'" type="checkbox">&nbsp;Ignore Bible quotes
-                        </div>
+                        <span style="margin-left: 10px;" ng-show="main.webConfig.debug">
+                            <input ng-model="main.formData.duplicates" ng-true-value="'ignore'" type="checkbox">&nbsp;Ignore matches from duplicate works<br>
+                        </span>
                     </div>
                 </div>
                 <div class="col-xs-12 col-sm-2">

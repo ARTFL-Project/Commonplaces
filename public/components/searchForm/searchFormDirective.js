@@ -83,9 +83,6 @@
                     if (scope.main.formData.duplicates != "ignore") {
                         delete scope.main.formData.duplicates;
                     }
-                    if (scope.main.formData.bible != "ignore") {
-                        delete scope.main.formData.bible;
-                    }
                     var urlString = URL.objectToString(scope.main.formData);
                     $log.debug(urlString)
                     if (urlString.length === 0) {
@@ -113,6 +110,20 @@
                 scope.selectSorting = function(sortId) {
                     scope.main.formData.sorting = sortId;
                     scope.sorting = sortKeys.keys[sortId].label;
+                }
+                scope.bibleFilter = "No filter";
+                scope.bibleFiltering = function(filtering) {
+                    if (filtering === 0) {
+                        scope.main.formData.bible = "ignore";
+                        scope.bibleFilter = "Filter out Bible sources";
+                    } else if (filtering == 1) {
+                        scope.main.formData.bible = "only";
+                        scope.bibleFilter = "Filter out non-Bible sources";
+                    } else if (filtering === 2) {
+                        scope.main.formData.bible = "all";
+                        scope.bibleFilter = "off";
+                    }
+                    $log.debug(scope.main.formData.bible)
                 }
                 scope.$watch("main.hideSearchForm", function(currentValue) {
                     if (currentValue) {

@@ -27,7 +27,9 @@
         <ul class="list-group">
             <li class="list-group-item row"  style="margin-left:0;margin-right:0" ng-repeat="result in facetData">
                 <div class="col-xs-8">
-                    {{ result.facet }}:
+                    <a href="" ng-click="goToResult(main.queryType, result.facet)">
+                        {{ result.facet }}
+                    </a>
                 </div>
                 <div class="col-xs-4" style="text-align: right;">
                     {{ result.count }}

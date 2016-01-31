@@ -10,8 +10,10 @@
             link: function(scope) {
                 var formData = angular.copy($location.search());
                 scope.showfacet = false;
+                scope.selectedFacet = "";
                 scope.getFacet = function(facet) {
                     formData.facet = facet;
+                    scope.selectedFacet = facet;
                     if (scope.main.queryType === "sharedPassages") {
                         var urlString = "/api/" + scope.main.dbActive + "/fulltextfacet?"
                     } else if (scope.main.queryType === "commonplaces") {
@@ -29,6 +31,20 @@
                 }
                 scope.closeFacets = function() {
                     scope.showfacet = false;
+                }
+                scope.goToResult = function(queryType, facet) {
+                    var currentFormData = angular.copy($location.search());
+                    currentFormData[scope.selectedFacet + '_exact'] = facet;
+                    var urlString = URL.objectToString(currentFormData);
+                    if (queryType == "sharedPassages") {
+                        var link = "/query/" + scope.main.dbActive + "/search?" + urlString;
+                    } else if (queryType == "commonplaces") {
+                        var link = "/commonplace/" + scope.main.dbActive + "/search?" + urlString;
+                    } else if (queryType == "topicView") {
+                        var link = "/topic/" + scope.main.dbActive + "/" + $routeParams.topicID + "?" + urlString;
+                        $log.debug(link)
+                    }
+                    $location.url(link);
                 }
             }
         }

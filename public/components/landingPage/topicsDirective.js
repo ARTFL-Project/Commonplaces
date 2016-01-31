@@ -7,14 +7,7 @@
     function topics($location, $routeParams, $log, webConfig, URL) {
         var buildTopicList = function(scope) {
             topics = [];
-            var dbIndex = 0;
-            for (var i=0; i < webConfig.databases.length; i+=1) {
-                if (webConfig.databases[i].dbname === scope.main.dbActive) {
-                    dbIndex = i;
-                    break;
-                }
-            }
-            var topicsInConfig = webConfig.databases[dbIndex].topics;
+            var topicsInConfig = scope.main.webConfig.databases[scope.main.dbActive].topics;
             for (var i in topicsInConfig) {
                 var topicObject = {"label": topicsInConfig[i], "topic": i};
                 topics.push(topicObject);
