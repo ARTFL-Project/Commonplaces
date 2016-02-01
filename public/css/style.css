@@ -453,3 +453,10 @@ nav > div > div.navbar-header > a {
     stroke: #FFA319;
   }
 }
+.close {
+    margin-top: -10px;
+    margin-right: -10px;
+}
+.close.closed {
+    opacity: 0;
+}

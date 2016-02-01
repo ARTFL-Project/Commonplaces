@@ -11,10 +11,14 @@
             })
         }
         var hideElement = function(element) {
+            if (element instanceof jQuery === false) {
+                element = angular.element(element.currentTarget).siblings(".hiding-element");
+            }
             element.velocity('slideUp', {
                 duration: 250,
                 easing: "easeOut"
             });
+            element.siblings(".close").addClass("closed");
             element.parent().velocity({
                 "padding-top": 0,
                 "padding-bottom": 0,
@@ -49,6 +53,7 @@
                     duration: 250,
                     easing: "easeOut"
                 });
+            element.siblings(".close").removeClass("closed");
             element.parent().velocity({
                 "padding": "15px",
                 "margin-bottom": "15px",
@@ -107,6 +112,7 @@
                         hideLandingPage();
                     }
                 }
+                scope.hideElement = hideElement;
                 scope.selectSorting = function(sortId) {
                     scope.main.formData.sorting = sortId;
                     scope.sorting = sortKeys.keys[sortId].label;

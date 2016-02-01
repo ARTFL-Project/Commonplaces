@@ -143,7 +143,7 @@ var fullTextFields = map[string]bool{
 
 var sortKeyMap = map[string][]string{
 	"-1": []string{""},
-	"0":  []string{"passageidentcount desc", "sourceauthor", "sourcetitle"},
+	"0":  []string{"passageidentcount DESC", "sourceauthor", "sourcetitle"},
 	"1":  []string{"targetdate", "targetauthor"},
 	"2":  []string{"sourcedate", "sourceauthor"},
 	"3":  []string{"targetauthor"},
@@ -152,7 +152,7 @@ var sortKeyMap = map[string][]string{
 
 var queryOperatorSlice = map[string]string{
 	" AND ": " +",
-	" OR ":  " ",
+	" OR ":  " ?",
 	" NOT ": " -",
 }
 
@@ -180,11 +180,60 @@ func logOutput() *os.File {
 	return f
 }
 
-func parseQuery(value string) string {
+func buildFullTextCondition(param string, value string) (paramValue string) {
 	for operator, symbol := range queryOperatorSlice {
 		value = strings.Replace(value, operator, symbol, -1)
 	}
-	return value
+	if strings.HasPrefix(value, "NOT ") {
+		value = strings.Replace(value, "NOT ", "", 1)
+		value = strings.Replace(value, "-", "", -1)
+		// If starting string is NOT, link the rest with implied AND NOTs
+		valueArray := strings.Split(value, " ")
+		queryList := make([]string, 1)
+		for pos, v := range valueArray {
+			if v == " " {
+				continue
+			}
+			condition := fmt.Sprintf("NOT MATCH(%s) AGAINST('%s' IN BOOLEAN MODE)", param, v)
+			if pos != 0 {
+				condition = "AND " + condition
+			}
+			queryList = append(queryList, condition)
+		}
+		paramValue = strings.Join(queryList, " ")
+	} else {
+		valueArray := strings.Split(value, " ")
+		queryList := make([]string, 1)
+		for pos, v := range valueArray {
+			if v == " " {
+				continue
+			}
+			var condition string
+			var link string
+			if strings.HasPrefix(v, "+") {
+				link = "AND "
+				v = strings.Replace(v, "+", "", 1)
+				condition = fmt.Sprintf("MATCH(%s) AGAINST('%s' IN BOOLEAN MODE)", param, v)
+			} else if strings.HasPrefix(v, "-") {
+				link = "AND "
+				v = strings.Replace(v, "-", "", 1)
+				condition = fmt.Sprintf("NOT MATCH(%s) AGAINST('%s' IN BOOLEAN MODE)", param, v)
+			} else if strings.HasPrefix(v, "?") {
+				link = "OR"
+				v = strings.Replace(v, "?", "", 1)
+				condition = fmt.Sprintf("MATCH(%s) AGAINST('%s' IN BOOLEAN MODE)", param, v)
+			} else {
+				link = "AND "
+				condition = fmt.Sprintf("MATCH(%s) AGAINST('%s' IN BOOLEAN MODE)", param, v)
+			}
+			if pos != 0 {
+				condition = link + condition
+			}
+			queryList = append(queryList, condition)
+		}
+		paramValue = strings.Join(queryList, " ")
+	}
+	return paramValue
 }
 
 func buildQuery(queryStringMap map[string][]string, duplicatesID string) string {
@@ -206,14 +255,7 @@ func buildQuery(queryStringMap map[string][]string, duplicatesID string) string 
 							continue
 						}
 					} else if _, ok := fullTextFields[param]; ok {
-						value = parseQuery(value)
-						if strings.HasPrefix(value, "NOT ") {
-							value = strings.Replace(value, "NOT ", "", 1)
-							value = strings.Replace(value, "-", "", -1)
-							paramValue = fmt.Sprintf("NOT MATCH(%s) AGAINST('%s' IN BOOLEAN MODE)", param, value)
-						} else {
-							paramValue = fmt.Sprintf("MATCH(%s) AGAINST('%s' IN BOOLEAN MODE)", param, value)
-						}
+						paramValue = buildFullTextCondition(param, value)
 					} else if strings.HasSuffix(param, "_exact") {
 						param = strings.Replace(param, "_exact", "", 1)
 						fmt.Println(param)
@@ -221,7 +263,7 @@ func buildQuery(queryStringMap map[string][]string, duplicatesID string) string 
 					} else {
 						dateRange := strings.Split(value, "-")
 						if len(dateRange) == 2 {
-							paramValue = fmt.Sprintf("%s between %s and %s", param, dateRange[0], dateRange[1])
+							paramValue = fmt.Sprintf("%s BETWEEN %s AND %s", param, dateRange[0], dateRange[1])
 						} else {
 							paramValue = fmt.Sprintf("%s='%s'", param, value)
 						}
@@ -232,14 +274,14 @@ func buildQuery(queryStringMap map[string][]string, duplicatesID string) string 
 			}
 		}
 	}
-	queryConditions := strings.Join(params, " and ")
+	queryConditions := strings.Join(params, " AND ")
 	return queryConditions
 }
 
 func findCommonPlaces(c *echo.Context) error {
 	passageID := c.Param("passageID")
 	dbname := c.Param("dbname")
-	query := "select sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcephiloid, sourcedatabasename, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetphiloid, targetdatabasename from " + dbname + " where passageident=?"
+	query := "SELECT sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcephiloid, sourcedatabasename, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetphiloid, targetdatabasename FROM " + dbname + " WHERE passageident=?"
 	fmt.Printf("query is:%s\n", query)
 	fmt.Println(passageID)
 	rows, err := db.Query(query, passageID)
@@ -343,24 +385,24 @@ func fullTextQuery(c *echo.Context) error {
 		continued = true
 	}
 	duplicatesID := webConfig.Databases[dbname]["duplicatesID"].(string)
-	query := "select sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcephiloid, sourcedatabasename, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetphiloid, targetdatabasename, passageident, passageidentcount from " + dbname + " where "
+	query := "SELECT sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcephiloid, sourcedatabasename, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetphiloid, targetdatabasename, passageident, passageidentcount FROM " + dbname + " WHERE "
 	sorting := strings.Join(sortKeyMap[queryStringMap["sorting"][0]], ", ")
 	query += buildQuery(queryStringMap, duplicatesID)
 	var err error
 	var rows *sql.Rows
 	if !continued {
 		if queryStringMap["sorting"][0] == "-1" {
-			query += " limit 20"
+			query += " LIMIT 20"
 		} else {
-			query += fmt.Sprintf(" order by %s limit 20", sorting)
+			query += fmt.Sprintf(" ORDER BY %s LIMIT 20", sorting)
 		}
 		fmt.Printf("query is:%s\n", query)
 		rows, err = db.Query(query)
 	} else {
 		if queryStringMap["sorting"][0] == "-1" {
-			query += fmt.Sprintf(" limit %d, 40", offset)
+			query += fmt.Sprintf(" LIMIT %d, 40", offset)
 		} else {
-			query += fmt.Sprintf(" order by %s limit %d, 40", sorting, offset)
+			query += fmt.Sprintf(" ORDER BY %s LIMIT %d, 40", sorting, offset)
 		}
 
 		fmt.Printf("query is:%s\n", query)
@@ -416,7 +458,7 @@ func fulltextCount(c *echo.Context) error {
 	dbname := c.Param("dbname")
 	delete(queryStringMap, "dbname")
 	duplicatesID := webConfig.Databases[dbname]["duplicatesID"].(string)
-	query := "select count(*) from " + dbname + " where "
+	query := "SELECT COUNT(*) FROM " + dbname + " WHERE "
 	query += buildQuery(queryStringMap, duplicatesID)
 	var row *sql.Row
 	row = db.QueryRow(query)
@@ -440,11 +482,11 @@ func fulltextFacet(c *echo.Context) error {
 	condition := buildQuery(queryStringMap, duplicatesID)
 	var query string
 	if facetType == "sourcedate" || facetType == "targetdate" {
-		query = fmt.Sprintf("select concat(decade, '-', decade + 9) as year, count(*) from (select floor(`%s` / 10) * 10 as decade from %s where %s) t group by decade order by count(*) desc limit 100", facetType, dbname, condition)
+		query = fmt.Sprintf("SELECT CONCAT(decade, '-', decade + 9) AS year, COUNT(*) FROM (SELECT floor(`%s` / 10) * 10 AS decade FROM %s WHERE %s) t GROUP BY decade ORDER BY COUNT(*) DESC LIMIT 100", facetType, dbname, condition)
 	} else {
-		query = fmt.Sprintf("select %s, count(*) from "+dbname+" where ", facetType)
+		query = fmt.Sprintf("SELECT %s, COUNT(*) FROM "+dbname+" WHERE ", facetType)
 		query += condition
-		query += fmt.Sprintf(" group by %s order by count(*) desc limit 100", facetType)
+		query += fmt.Sprintf(" GROUP BY %s ORDER BY COUNT(*) DESC LIMIT 100", facetType)
 	}
 
 	fmt.Println(query)
@@ -485,18 +527,18 @@ func getTopic(c *echo.Context) error {
 		delete(queryStringMap, "offset")
 		continued = true
 	}
-	query := "select author, title, date, leftcontext, matchcontext, rightcontext, passageident, passageidentcount, topic_weight from " + dbname + " where "
+	query := "SELECT author, title, date, leftcontext, matchcontext, rightcontext, passageident, passageidentcount, topic_weight FROM " + dbname + " WHERE "
 	condition := buildQuery(queryStringMap, "")
 	fmt.Println("RAw query", c.Request().URL.RawQuery)
 	if condition != "" {
-		query += fmt.Sprintf(" %s and ", condition)
+		query += fmt.Sprintf(" %s AND ", condition)
 	}
-	query += fmt.Sprintf("topic=%d and matchsize > 10 order by topic_weight desc", topic)
+	query += fmt.Sprintf("topic=%d AND matchsize > 10 ORDER BY topic_weight DESC", topic)
 
 	if continued {
-		query += fmt.Sprintf(" limit %d, 100", offset)
+		query += fmt.Sprintf(" LIMIT %d, 100", offset)
 	} else {
-		query += " limit 50"
+		query += " LIMIT 50"
 	}
 	fmt.Println(query)
 	rows, err := db.Query(query)
@@ -537,9 +579,7 @@ func getTopicCount(c *echo.Context) error {
 	topicID := c.Param("topicID")
 	topic, _ := strconv.Atoi(topicID)
 	query := ""
-	// var queryParams []interface{}
-	query += "select count(*) from " + dbname + " where topic=? and matchsize > 10"
-	// queryParams = append(queryParams, topic)
+	query += "SELECT COUNT(*) FROM " + dbname + " WHERE topic=? AND matchsize > 10"
 	fmt.Printf("query is:%s %d \n", query, topic)
 	var row *sql.Row
 	row = db.QueryRow(query, topic)
@@ -562,9 +602,9 @@ func getTopicFacet(c *echo.Context) error {
 	delete(queryStringMap, "facet")
 	var query string
 	if facetType == "date" {
-		query += fmt.Sprintf("select concat(decade, '-', decade + 9) as year, count(*) from (select floor(`%s` / 10) * 10 as decade from %s where topic=? and matchsize > 10) t group by decade order by count(*) desc limit 100", facetType, dbname)
+		query += fmt.Sprintf("SELECT CONCAT(decade, '-', decade + 9) AS year, COUNT(*) FROM (SELECT floor(`%s` / 10) * 10 AS decade FROM %s WHERE topic=? AND matchsize > 10) t GROUP BY decade ORDER BY COUNT(*) DESC LIMIT 100", facetType, dbname)
 	} else {
-		query += fmt.Sprintf("select %s, count(*) from %s where topic=? and matchsize > 10 group by %s order by count(*) desc limit 100", facetType, dbname, facetType)
+		query += fmt.Sprintf("SELECT %s, COUNT(*) FROM %s WHERE topic=? AND matchsize > 10 GROUP BY %s ORDER BY COUNT(*) DESC LIMIT 100", facetType, dbname, facetType)
 	}
 
 	fmt.Printf("facet query is:%s %d\n", query, topic)
@@ -595,7 +635,7 @@ func getTopicFacet(c *echo.Context) error {
 
 func getWordDistribution(c *echo.Context, dbname string, topic string) string {
 	dbname += "_topic_words"
-	query := fmt.Sprintf("select words from %s where topic=?", dbname)
+	query := fmt.Sprintf("SELECT words FROM %s WHERE topic=?", dbname)
 	var words string
 	err := db.QueryRow(query, topic).Scan(&words)
 	if err != nil {
@@ -618,13 +658,13 @@ func searchInCommonplace(c *echo.Context) error {
 		delete(queryStringMap, "offset")
 		continued = true
 	}
-	query := fmt.Sprintf("select author, title, date, leftcontext, matchcontext, rightcontext, passageident, passageidentcount from %s where ", dbname)
+	query := fmt.Sprintf("SELECT author, title, date, leftcontext, matchcontext, rightcontext, passageident, passageidentcount FROM %s WHERE ", dbname)
 	query += buildQuery(queryStringMap, "")
 
 	if !continued {
-		query += " limit 40"
+		query += " LIMIT 40"
 	} else {
-		query += fmt.Sprintf(" limit %d, 40", offset)
+		query += fmt.Sprintf(" LIMIT %d, 40", offset)
 	}
 
 	fmt.Println(query)
@@ -659,7 +699,7 @@ func searchInCommonplace(c *echo.Context) error {
 func searchInCommonplaceCount(c *echo.Context) error {
 	dbname := c.Param("dbname") + "_topics"
 	queryStringMap, _ := url.ParseQuery(c.Request().URL.RawQuery)
-	query := fmt.Sprintf("select count(*) from %s where ", dbname)
+	query := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE ", dbname)
 	query += buildQuery(queryStringMap, "")
 	fmt.Println(query, queryStringMap)
 	var row *sql.Row
@@ -682,11 +722,11 @@ func commonplaceFacet(c *echo.Context) error {
 	condition := buildQuery(queryStringMap, "")
 	var query string
 	if facetType == "date" {
-		query = fmt.Sprintf("select concat(decade, '-', decade + 9) as year, count(*) from (select floor(`%s` / 10) * 10 as decade from %s where %s) t group by decade order by count(*) desc limit 100", facetType, dbname, condition)
+		query = fmt.Sprintf("SELECT CONCAT(decade, '-', decade + 9) AS year, COUNT(*) FROM (SELECT floor(`%s` / 10) * 10 AS decade FROM %s WHERE %s) t GROUP BY decade ORDER BY COUNT(*) DESC LIMIT 100", facetType, dbname, condition)
 	} else {
-		query = fmt.Sprintf("select %s, count(*) from "+dbname+" where ", facetType)
+		query = fmt.Sprintf("SELECT %s, COUNT(*) FROM "+dbname+" WHERE ", facetType)
 		query += condition
-		query += fmt.Sprintf(" group by %s order by count(*) desc limit 100", facetType)
+		query += fmt.Sprintf(" GROUP BY %s ORDER BY COUNT(*) DESC LIMIT 100", facetType)
 	}
 
 	fmt.Println(query)

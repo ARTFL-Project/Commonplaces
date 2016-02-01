@@ -1,6 +1,5 @@
 <div class="panel panel-default" id="section-container" style="text-align: center;position: relative">
-    <span class="glyphicon glyphicon-chevron-right" style="display: none; position: absolute; left: 5px; top: 5px"></span>
-    <span class="glyphicon glyphicon-chevron-down" style="display: none; position: absolute; left: 5px; top: 5px"></span>
+    <button type="button" class="close" aria-label="Close" ng-click="hideElement($event)"><span aria-hidden="true">&times;</span></button>
     <h4>Explore Commonplaces by Subject</h4>
     <div class="row hiding-element">
         <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3" ng-repeat="section in topics">
