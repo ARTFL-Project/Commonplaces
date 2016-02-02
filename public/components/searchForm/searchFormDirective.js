@@ -4,7 +4,7 @@
         .module('DiggingApp')
         .directive('searchForm', searchForm);
 
-    function searchForm($location, $routeParams, $log, URL, sortKeys) {
+    function searchForm($location, $routeParams, $log, $http, URL, sortKeys) {
         var hideLandingPage = function() {
             angular.element('.hiding-element').each(function() {
                 hideElement(angular.element(this));
@@ -78,6 +78,22 @@
                 showElement(angular.element(this));
             })
         }
+        var sortObject = function(obj) {
+            var arr = [];
+            var prop;
+            for (prop in obj) {
+                if (obj.hasOwnProperty(prop)) {
+                    arr.push({
+                        'key': prop,
+                        'value': obj[prop]
+                    });
+                }
+            }
+            arr.sort(function(a, b) {
+                return b.value - a.value;
+            });
+            return arr; // returns array
+        }
         return {
             templateUrl: 'components/searchForm/searchForm.html',
             link: function(scope) {
@@ -130,6 +146,19 @@
                         scope.bibleFilter = "off";
                     }
                     $log.debug(scope.main.formData.bible)
+                }
+                scope.showLatinAuthorList = false;
+                scope.listAuthors = function() {
+                    if (!scope.showLatinAuthorList) {
+                        var urlString = "/api/getLatinAuthors";
+                        $http.get(urlString).then(function(response) {
+                            scope.latinAuthors = sortObject(response.data);
+                            $log.debug(scope.latinAuthors)
+                            scope.showLatinAuthorList = true;
+                        });
+                    } else {
+                        scope.showLatinAuthorList = false;
+                    }
                 }
                 scope.$watch("main.hideSearchForm", function(currentValue) {
                     if (currentValue) {

@@ -16,7 +16,7 @@
             vm.description = false;
             vm.queryType = "sharedPassages";
             vm.formData = {};
-            vm.formData.duplicates = "ignore";
+            vm.formData.duplicates = "";
             vm.formData.sorting = -1;
             vm.commonplace = {};
             vm.dbActive = "eebo";

@@ -11,6 +11,7 @@ body {
   color: rgb(61, 61, 61);
   /*background-color: rgb(91, 143, 168);*/
   font-family: 'Roboto', sans-serif;
+  touch-action: manipulation;
 }
 
 /* Navbar colors */
@@ -454,9 +455,18 @@ nav > div > div.navbar-header > a {
   }
 }
 .close {
-    margin-top: -10px;
-    margin-right: -10px;
+  margin-top: -10px;
+  margin-right: -10px;
 }
 .close.closed {
-    opacity: 0;
+  opacity: 0;
+}
+.latin-list {
+  position: absolute;
+  overflow-y: scroll;
+  height: 400px;
+  z-index: 50;
+  padding: 5px !important;
+  margin-right: 15px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
 }

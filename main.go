@@ -184,6 +184,8 @@ func buildFullTextCondition(param string, value string) (paramValue string) {
 	for operator, symbol := range queryOperatorSlice {
 		value = strings.Replace(value, operator, symbol, -1)
 	}
+	value = strings.Replace(value, "(", "", -1)
+	value = strings.Replace(value, ")", "", -1)
 	if strings.HasPrefix(value, "NOT ") {
 		value = strings.Replace(value, "NOT ", "", 1)
 		value = strings.Replace(value, "-", "", -1)
@@ -755,6 +757,29 @@ func commonplaceFacet(c *echo.Context) error {
 	return c.JSON(200, results)
 }
 
+func getLatinAuthors(c *echo.Context) error {
+    query := "select sourceauthor from latin"
+    var err error
+    var rows *sql.Rows
+    rows, err = db.Query(query)
+    if err != nil {
+        c.Error(err)
+    }
+
+    defer rows.Close()
+
+    resultsMap := make(map[string]int)
+    for rows.Next() {
+        var author *string
+        newErr := rows.Scan(&author)
+        if newErr != nil {
+            c.Error(newErr)
+        }
+        resultsMap[*author]++
+    }
+	return c.JSON(200, resultsMap)
+}
+
 func exportConfig(c *echo.Context) error {
 	return c.JSON(200, webConfig)
 }
@@ -827,6 +852,7 @@ func main() {
 	e.Get("/api/:dbname/searchincommonplace", searchInCommonplace)
 	e.Get("/api/:dbname/searchincommonplacecount", searchInCommonplaceCount)
 	e.Get("/api/:dbname/commonplacefacet", commonplaceFacet)
+	e.Get("/api/getLatinAuthors", getLatinAuthors)
 	// Export config
 	e.Get("/config/config.json", exportConfig)
 

@@ -15,15 +15,11 @@
                 attrs.$observe("show", function(loading) {
                     if (loading == "true") {
                         el.velocity('fadeIn', {duration: 200});
-                        $log.debug("fading in");
                     } else {
                         el.velocity('fadeOut', {duration: 200});
-                        $log.debug("fading out");
                     }
-                })
-
+                });
             }
         }
     }
-
 })();

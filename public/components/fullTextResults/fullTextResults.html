@@ -52,7 +52,9 @@
             </div>
         </div>
         <div style="text-align: center;" ng-show="loadingData">
-            <h4>Loading data...</h4>
+            <h4>
+                Loading data<span class="dots" ng-if="loadingData"><span>.</span><span>.</span><span>.</span></span>
+            </h4>
         </div>
     </div>
 </div>
