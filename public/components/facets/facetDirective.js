@@ -22,9 +22,7 @@
                         var urlString = "/api/" + scope.main.dbActive + "/topicFacet/" + $routeParams.topicID + "?"
                     }
                     urlString += URL.objectToString(formData);
-                    $log.debug(urlString)
                     $http.get(urlString).then(function(response) {
-                        $log.debug(response.data);
                         scope.facetData = response.data;
                         scope.showfacet = true;
                     });

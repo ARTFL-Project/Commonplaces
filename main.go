@@ -317,6 +317,10 @@ func findCommonPlaces(c *echo.Context) error {
 		if err != nil {
 			fmt.Println(err)
 		}
+        author = strings.Replace(author, "<fs/>", "; ", -1)
+        title = strings.Replace(title, "<fs/>", "; ", -1)
+        targetAuthor = strings.Replace(targetAuthor, "<fs/>", "; ", -1)
+        targetTitle = strings.Replace(targetTitle, "<fs/>", "; ", -1)
 		otherTitles := make(map[string]int, 0)
 		sourceObject := resultObject{author, title, date, leftContext, rightContext, matchContext, philoID, databaseName, passageID, otherTitles}
 		if _, ok := filteredAuthors[author]; !ok {
@@ -444,6 +448,10 @@ func fullTextQuery(c *echo.Context) error {
 			c.Error(err)
 			return c.JSON(200, fullTextResults{emptyResults})
 		}
+        author = strings.Replace(author, "<fs/>", "; ", -1)
+        title = strings.Replace(title, "<fs/>", "; ", -1)
+        targetAuthor = strings.Replace(targetAuthor, "<fs/>", "; ", -1)
+        targetTitle = strings.Replace(targetTitle, "<fs/>", "; ", -1)
 		sourceResults := fullTextResultObject{&author, &title, &date, &leftContext, &matchContext, &rightContext, &philoID, &databaseName, &targetAuthor, &targetTitle, &targetDate, &targetLeftContext, &targetMatchContext, &targetRightContext, &targetphiloID, &targetDatabaseName, &passageID, &passageIDCount}
 		results.FullTextList = append(results.FullTextList, sourceResults)
 	}
@@ -569,6 +577,8 @@ func getTopic(c *echo.Context) error {
 		if scanErr != nil {
 			c.Error(scanErr)
 		}
+        author = strings.Replace(author, "<fs/>", "; ", -1)
+        title = strings.Replace(title, "<fs/>", "; ", -1)
 		topicPassage = append(topicPassage, topicPassages{&author, &title, &date, &leftContext, &matchContext, &rightContext, &passageID, &passageIDCount, &topicWeight})
 	}
 	words := getWordDistribution(c, c.Param("dbname"), topicID)
@@ -693,6 +703,8 @@ func searchInCommonplace(c *echo.Context) error {
 		if scanErr != nil {
 			c.Error(scanErr)
 		}
+        author = strings.Replace(author, "<fs/>", "; ", -1)
+        title = strings.Replace(title, "<fs/>", "; ", -1)
 		commonPlaceResults = append(commonPlaceResults, commonplaceFullTextResult{&author, &title, &date, &leftContext, &matchContext, &rightContext, &passageID, &passageIdentCount})
 	}
 	return c.JSON(200, commonPlaceResults)
@@ -841,6 +853,7 @@ func main() {
 	e.Get("/query/:dbname/search", index)
 	e.Get("/topic/:dbname/:topicID", index)
 	e.Get("/commonplace/:dbname/search", index)
+
 	// API calls
 	e.Get("/api/:dbname/commonplaces/:passageID", findCommonPlaces)
 	e.Get("/api/:dbname/fulltext", fullTextQuery)
@@ -853,6 +866,7 @@ func main() {
 	e.Get("/api/:dbname/searchincommonplacecount", searchInCommonplaceCount)
 	e.Get("/api/:dbname/commonplacefacet", commonplaceFacet)
 	e.Get("/api/getLatinAuthors", getLatinAuthors)
+
 	// Export config
 	e.Get("/config/config.json", exportConfig)
 
