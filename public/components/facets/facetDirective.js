@@ -32,7 +32,7 @@
                 }
                 scope.goToResult = function(queryType, facet) {
                     var currentFormData = angular.copy($location.search());
-                    currentFormData[scope.selectedFacet + '_exact'] = facet;
+                    currentFormData[scope.selectedFacet] = '"' + facet + '"';
                     var urlString = URL.objectToString(currentFormData);
                     if (queryType == "sharedPassages") {
                         var link = "/query/" + scope.main.dbActive + "/search?" + urlString;

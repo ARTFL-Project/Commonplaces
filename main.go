@@ -12,6 +12,7 @@ import (
 	"strings"
 	"text/template"
 
+    "github.com/labstack/gommon/log"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/labstack/echo"
 	mw "github.com/labstack/echo/middleware"
@@ -257,11 +258,11 @@ func buildQuery(queryStringMap map[string][]string, duplicatesID string) string 
 							continue
 						}
 					} else if _, ok := fullTextFields[param]; ok {
-						paramValue = buildFullTextCondition(param, value)
-					} else if strings.HasSuffix(param, "_exact") {
-						param = strings.Replace(param, "_exact", "", 1)
-						fmt.Println(param)
-						paramValue = fmt.Sprintf(`%s="%s"`, param, value)
+                        if strings.HasPrefix(value, `"`) {
+                            paramValue = fmt.Sprintf("%s=%s", param, value)
+                        } else {
+                            paramValue = buildFullTextCondition(param, value)
+                        }
 					} else {
 						dateRange := strings.Split(value, "-")
 						if len(dateRange) == 2 {
@@ -820,6 +821,12 @@ func databaseConfig() config {
 	return settings
 }
 
+func matchAny(c *echo.Context) error {
+    debug := c.Request().URL.RawQuery
+    // c.Error(debug)
+    return c.JSON(200, debug)
+}
+
 func main() {
 
 	fmt.Println(webConfig)
@@ -828,8 +835,12 @@ func main() {
 
 	e.HTTP2(true)
 
+    // Set-up logging
 	e.Use(mw.Logger())
-	e.SetLogOutput(logOutput())
+    l := log.New("log")
+    l.SetOutput(logOutput())
+    e.SetLogger(l)
+
 	e.SetDebug(webConfig.Debug)
 
 	e.Use(mw.Recover())
@@ -855,20 +866,24 @@ func main() {
 	e.Get("/commonplace/:dbname/search", index)
 
 	// API calls
-	e.Get("/api/:dbname/commonplaces/:passageID", findCommonPlaces)
-	e.Get("/api/:dbname/fulltext", fullTextQuery)
-	e.Get("/api/:dbname/fulltextcount", fulltextCount)
-	e.Get("/api/:dbname/fulltextfacet", fulltextFacet)
-	e.Get("/api/:dbname/topic/:topicID", getTopic)
-	e.Get("/api/:dbname/topicFacet/:topicID", getTopicFacet)
-	e.Get("/api/:dbname/topicCount/:topicID", getTopicCount)
-	e.Get("/api/:dbname/searchincommonplace", searchInCommonplace)
-	e.Get("/api/:dbname/searchincommonplacecount", searchInCommonplaceCount)
-	e.Get("/api/:dbname/commonplacefacet", commonplaceFacet)
-	e.Get("/api/getLatinAuthors", getLatinAuthors)
+    api := e.Group("/api/")
+	api.Get(":dbname/commonplaces/:passageID", findCommonPlaces)
+	api.Get(":dbname/fulltext", fullTextQuery)
+    // api.GET("gale/fulltext", full)
+	api.Get(":dbname/fulltextcount", fulltextCount)
+	api.Get(":dbname/fulltextfacet", fulltextFacet)
+	api.Get(":dbname/topic/:topicID", getTopic)
+	api.Get(":dbname/topicFacet/:topicID", getTopicFacet)
+	api.Get(":dbname/topicCount/:topicID", getTopicCount)
+	api.Get(":dbname/searchincommonplace", searchInCommonplace)
+	api.Get(":dbname/searchincommonplacecount", searchInCommonplaceCount)
+	api.Get(":dbname/commonplacefacet", commonplaceFacet)
+	api.Get("getLatinAuthors", getLatinAuthors)
 
 	// Export config
 	e.Get("/config/config.json", exportConfig)
+
+    e.Any("/api", matchAny)
 
 	e.Run(":" + webConfig.Port)
 }
