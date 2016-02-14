@@ -64,7 +64,7 @@ type (
 		TargetMatchContext *string `json:"targetMatchContext"`
 		TargetRightContext *string `json:"targetRightContext"`
 		TargetPhiloID      *string `json:"targetPhiloID"`
-		TargetDatabaseName *string `json:"targetDatabaseName"`
+		Targetmodulename *string `json:"targetmodulename"`
 		PassageID          *int32  `json:"passageID"`
 		PassageIDCount     *int32  `json:"passageIDCount"`
 	}
@@ -140,6 +140,8 @@ var fullTextFields = map[string]bool{
 	"matchcontext":       true,
 	"sourcematchcontext": true,
 	"targetmatchcontext": true,
+    "sourcemodulename":   true,
+    "targetmodulename":   true,
 }
 
 var sortKeyMap = map[string][]string{
@@ -264,6 +266,7 @@ func buildQuery(queryStringMap map[string][]string, duplicatesID string) string 
                             paramValue = buildFullTextCondition(param, value)
                         }
 					} else {
+                        value = strings.Replace(value, `"`, "", -1)
 						dateRange := strings.Split(value, "-")
 						if len(dateRange) == 2 {
 							paramValue = fmt.Sprintf("%s BETWEEN %s AND %s", param, dateRange[0], dateRange[1])
@@ -284,7 +287,7 @@ func buildQuery(queryStringMap map[string][]string, duplicatesID string) string 
 func findCommonPlaces(c *echo.Context) error {
 	passageID := c.Param("passageID")
 	dbname := c.Param("dbname")
-	query := "SELECT sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcephiloid, sourcedatabasename, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetphiloid, targetdatabasename FROM " + dbname + " WHERE passageident=?"
+	query := "SELECT sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcephiloid, sourcemodulename, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetphiloid, targetmodulename FROM " + dbname + " WHERE passageident=?"
 	fmt.Printf("query is:%s\n", query)
 	fmt.Println(passageID)
 	rows, err := db.Query(query, passageID)
@@ -313,8 +316,8 @@ func findCommonPlaces(c *echo.Context) error {
 		var philoID string
 		var targetPhiloID string
 		var databaseName string
-		var targetDatabaseName string
-		err := rows.Scan(&author, &title, &date, &leftContext, &matchContext, &rightContext, &philoID, &databaseName, &targetAuthor, &targetTitle, &targetDate, &targetLeftContext, &targetMatchContext, &targetRightContext, &targetPhiloID, &targetDatabaseName)
+		var targetmodulename string
+		err := rows.Scan(&author, &title, &date, &leftContext, &matchContext, &rightContext, &philoID, &databaseName, &targetAuthor, &targetTitle, &targetDate, &targetLeftContext, &targetMatchContext, &targetRightContext, &targetPhiloID, &targetmodulename)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -345,7 +348,7 @@ func findCommonPlaces(c *echo.Context) error {
 		}
 		// Process target results
 		targetOtherTitles := make(map[string]int, 0)
-		targetObject := resultObject{targetAuthor, targetTitle, targetDate, targetLeftContext, targetRightContext, targetMatchContext, targetPhiloID, targetDatabaseName, passageID, targetOtherTitles}
+		targetObject := resultObject{targetAuthor, targetTitle, targetDate, targetLeftContext, targetRightContext, targetMatchContext, targetPhiloID, targetmodulename, passageID, targetOtherTitles}
 		if _, ok := filteredAuthors[targetAuthor]; !ok {
 			filteredAuthors[targetAuthor] = targetObject
 		} else if _, ok := filteredAuthors[targetAuthor]; ok {
@@ -392,7 +395,7 @@ func fullTextQuery(c *echo.Context) error {
 		continued = true
 	}
 	duplicatesID := webConfig.Databases[dbname]["duplicatesID"].(string)
-	query := "SELECT sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcephiloid, sourcedatabasename, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetphiloid, targetdatabasename, passageident, passageidentcount FROM " + dbname + " WHERE "
+	query := "SELECT sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcephiloid, sourcemodulename, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetphiloid, targetmodulename, passageident, passageidentcount FROM " + dbname + " WHERE "
 	sorting := strings.Join(sortKeyMap[queryStringMap["sorting"][0]], ", ")
 	query += buildQuery(queryStringMap, duplicatesID)
 	var err error
@@ -440,10 +443,10 @@ func fullTextQuery(c *echo.Context) error {
 		var philoID string
 		var targetphiloID string
 		var databaseName string
-		var targetDatabaseName string
+		var targetmodulename string
 		var passageID int32
 		var passageIDCount int32
-		err := rows.Scan(&author, &title, &date, &leftContext, &matchContext, &rightContext, &philoID, &databaseName, &targetAuthor, &targetTitle, &targetDate, &targetLeftContext, &targetMatchContext, &targetRightContext, &targetphiloID, &targetDatabaseName, &passageID, &passageIDCount)
+		err := rows.Scan(&author, &title, &date, &leftContext, &matchContext, &rightContext, &philoID, &databaseName, &targetAuthor, &targetTitle, &targetDate, &targetLeftContext, &targetMatchContext, &targetRightContext, &targetphiloID, &targetmodulename, &passageID, &passageIDCount)
 		if err != nil {
 			var emptyResults []fullTextResultObject
 			c.Error(err)
@@ -453,7 +456,7 @@ func fullTextQuery(c *echo.Context) error {
         title = strings.Replace(title, "<fs/>", "; ", -1)
         targetAuthor = strings.Replace(targetAuthor, "<fs/>", "; ", -1)
         targetTitle = strings.Replace(targetTitle, "<fs/>", "; ", -1)
-		sourceResults := fullTextResultObject{&author, &title, &date, &leftContext, &matchContext, &rightContext, &philoID, &databaseName, &targetAuthor, &targetTitle, &targetDate, &targetLeftContext, &targetMatchContext, &targetRightContext, &targetphiloID, &targetDatabaseName, &passageID, &passageIDCount}
+		sourceResults := fullTextResultObject{&author, &title, &date, &leftContext, &matchContext, &rightContext, &philoID, &databaseName, &targetAuthor, &targetTitle, &targetDate, &targetLeftContext, &targetMatchContext, &targetRightContext, &targetphiloID, &targetmodulename, &passageID, &passageIDCount}
 		results.FullTextList = append(results.FullTextList, sourceResults)
 	}
 
