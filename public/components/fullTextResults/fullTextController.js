@@ -9,6 +9,7 @@
 	function FullTextController($scope, $http, $location, $routeParams, $anchorScroll, $timeout, URL) {
 		var vm = this;
         $scope.main.hideSearchForm = true;
+		$scope.main.welcomePage = false;
     }
 
 }) ();

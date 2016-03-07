@@ -10,6 +10,7 @@
 
             vm.hideLanding = true;
             vm.hideSearchForm = false;
+            vm.welcomePage = false;
             vm.landingPage = true;
             vm.webConfig = webConfig;
             vm.debug = webConfig.debug;
@@ -25,6 +26,7 @@
                 if (vm.hideSearchForm) {
                     vm.hideSearchForm = false;
                 }
+                vm.welcomePage = true;
             }
 		}
 })();

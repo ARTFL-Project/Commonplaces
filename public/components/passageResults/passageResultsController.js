@@ -10,6 +10,8 @@
 		var vm = this;
 		vm.formData = $location.search();
 
+		$scope.main.welcomePage = false;
+
         vm.passageID = $routeParams.passageID;
         vm.dbname = $routeParams.dbname;
         $http.get('api/' + vm.dbname + '/commonplaces/' + vm.passageID).then(function(response) {
