@@ -70,7 +70,8 @@
             restrict: 'E',
             templateUrl: 'components/passageResults/timeline.html',
             link: function(scope, element) {
-                scope.timeline = getTimeline(scope);
+                // scope.timeline = getTimeline(scope);
+                scope.timeline = scope.passageResults.results.titleList;
                 scope.displayLimit = 5;
                 scope.addMoreItems = function() {
                     scope.displayLimit += 5;

@@ -30,13 +30,14 @@
                     angular.element(".spinner").remove();
                     if (scope.fullTextResults.fullList != null) {
                         scope.lastRow += scope.fullTextResults.fullList.length;
+                        $log.debug(scope.lastRow)
                     }
                     scope.loading = false;
                     getTotalCounts(scope);
                 }).catch(function(response) {
                     scope.fullTextResults = {fullList: []};
                 });
-                scope.displayLimit = 20;
+                scope.displayLimit = 40;
                 scope.loadingData = false;
                 scope.addMoreResults = function() {
                     scope.loadingData = true;

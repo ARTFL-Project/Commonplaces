@@ -232,6 +232,10 @@ form h4, #section-container h4 {
   font-size: 1.3em;
   font-weight: 700;
 }
+.info {
+    padding: 1px 0px 5px 0px;
+    background-color: #FFB547;
+}
 
 /*Header*/
 

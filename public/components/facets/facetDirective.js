@@ -11,7 +11,9 @@
                 var formData = angular.copy($location.search());
                 scope.showfacet = false;
                 scope.selectedFacet = "";
+                scope.facetLoading = false;
                 scope.getFacet = function(facet) {
+                    scope.facetLoading = true;
                     formData.facet = facet;
                     scope.selectedFacet = facet;
                     if (scope.main.queryType === "sharedPassages") {
@@ -25,6 +27,7 @@
                     $http.get(urlString).then(function(response) {
                         scope.facetData = response.data;
                         scope.showfacet = true;
+                        scope.facetLoading = false;
                     });
                 }
                 scope.closeFacets = function() {

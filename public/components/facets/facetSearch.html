@@ -22,6 +22,7 @@
             <li><a href="#" ng-click="getFacet('title')">Title</a></li>
             <li><a href="#" ng-click="getFacet('date')">Date (decade)</a></li>
         </ul>
+        <spinner show="{{ facetLoading }}"></spinner>
     </div>
     <div class="panel panel-default facet-results" ng-if="showfacet">
         <button type="button" class="btn btn-primary btn-sm close-facets" ng-click="closeFacets()">X</button>

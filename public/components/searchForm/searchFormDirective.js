@@ -128,6 +128,12 @@
                         hideLandingPage();
                     }
                 }
+                scope.clear = function() {
+                    scope.main.formData = {
+                        duplicates: "",
+                        sorting: -1
+                    }
+                }
                 scope.hideElement = hideElement;
                 scope.selectSorting = function(sortId) {
                     scope.main.formData.sorting = sortId;
@@ -145,7 +151,6 @@
                         scope.main.formData.bible = "all";
                         scope.bibleFilter = "off";
                     }
-                    $log.debug(scope.main.formData.bible)
                 }
                 scope.showLatinAuthorList = false;
                 scope.listAuthors = function() {
@@ -159,6 +164,27 @@
                     } else {
                         scope.showLatinAuthorList = false;
                     }
+                }
+                scope.showSourceModuleList = false;
+                scope.showTargetModuleList = false;
+                scope.listSourceModules = function() {
+                    if (!scope.showSourceModuleList) {
+                        scope.showSourceModuleList = true;
+                    } else {
+                        scope.showSourceModuleList = false;
+                    }
+                }
+                scope.listTargetModules = function() {
+                    if (!scope.showTargetModuleList) {
+                        scope.showTargetModuleList = true;
+                    } else {
+                        scope.showTargetModuleList = false;
+                    }
+                }
+                scope.fillForm = function(field, value) {
+                    scope.main.formData[field] = '"' + value + '"';
+                    scope.showSourceModuleList = false;
+                    scope.showTargetModuleList = false;
                 }
                 scope.$watch("main.hideSearchForm", function(currentValue) {
                     if (currentValue) {

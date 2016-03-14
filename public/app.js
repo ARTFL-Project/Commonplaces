@@ -20,7 +20,7 @@
             vm.formData.duplicates = "";
             vm.formData.sorting = -1;
             vm.commonplace = {};
-            vm.dbActive = "eebo";
+            vm.dbActive = "merge";
 
             vm.openLandingPage = function() {
                 if (vm.hideSearchForm) {

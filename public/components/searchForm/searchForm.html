@@ -72,6 +72,30 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="col-xs-12">
+                            <div class="row search-field">
+                                <div class="col-xs-12 col-sm-3">
+                                    Module Name:
+                                </div>
+                                <div class="col-xs-12 col-sm-9">
+                                    <div class="input-group">
+                                        <input class="form-control" ng-model="main.formData.sourcemodulename" placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.sourcemodulename }}" type="text">
+                                        <span class="input-group-btn">
+                                              <button class="btn btn-primary" type="button" style="font-size: 11px;padding: 5px 2px; line-height:100%" ng-click="listSourceModules()">
+                                                  List<br>modules
+                                              </button>
+                                        </span>
+                                    </div>
+                                    <div class="panel panel-default latin-list" ng-if="showSourceModuleList">
+                                        <ul class="list-group">
+                                            <li class="list-group-item row"  style="margin-left:0;margin-right:0" ng-repeat="obj in main.webConfig.modules">
+                                                <a href="" ng-click="fillForm('sourcemodulename', obj)">{{ ::obj }}</a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <div class="col-xs-12" ng-if="main.dbActive !== 'latin'">
                             <div class="row search-field">
                                 <div class="col-xs-12 col-sm-3">
@@ -126,6 +150,30 @@
                                 </div>
                                 <div class="col-xs-12 col-sm-9">
                                     <input class="form-control" ng-model="main.formData.targettitle" placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.targettitle }}" type="text">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xs-12">
+                            <div class="row search-field">
+                                <div class="col-xs-12 col-sm-3">
+                                    Module Name:
+                                </div>
+                                <div class="col-xs-12 col-sm-9">
+                                    <div class="input-group">
+                                        <input class="form-control" ng-model="main.formData.targetmodulename" placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.targetmodulename }}" type="text">
+                                        <span class="input-group-btn">
+                                              <button class="btn btn-primary" type="button" style="font-size: 11px;padding: 5px 2px; line-height:100%" ng-click="listTargetModules()">
+                                                  List<br>modules
+                                              </button>
+                                        </span>
+                                    </div>
+                                    <div class="panel panel-default latin-list" ng-if="showTargetModuleList">
+                                        <ul class="list-group">
+                                            <li class="list-group-item row"  style="margin-left:0;margin-right:0" ng-repeat="obj in main.webConfig.modules">
+                                                <a href="" ng-click="fillForm('targetmodulename', obj)">{{ ::obj }}</a>
+                                            </li>
+                                        </ul>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -193,6 +241,7 @@
                 </div>
                 <div class="col-xs-12 col-sm-2">
                     <div class="search-field" ng-if="!hideForm">
+                        <button type="button" class="btn btn-primary" ng-click="clear()">Clear</button>
                         <button class="btn btn-primary pull-right" type="submit">Search</button>
                     </div>
                 </div>
