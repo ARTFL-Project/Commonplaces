@@ -45,32 +45,10 @@
     }
 
     function timeline($log) {
-        var getTimeline = function(scope) {
-            var titleList = scope.passageResults.results.titleList;
-            var dates = {};
-            for (var i = 0; i < titleList.length; i += 1) {
-                var date = parseInt(titleList[i].date);
-                if (!(date in dates)) {
-                    dates[date] = [];
-                }
-                dates[date].push(titleList[i]);
-            }
-            var timeline = [];
-            for (var key in dates) {
-                timeline.push([key, dates[key]]);
-            }
-            timeline.sort(function(a, b) {
-                var x = a[0];
-                var y = b[0];
-                return ((x < y) ? -1 : ((x > y) ? 1 : 0));
-            });
-            return timeline;
-        }
         return {
             restrict: 'E',
             templateUrl: 'components/passageResults/timeline.html',
             link: function(scope, element) {
-                // scope.timeline = getTimeline(scope);
                 scope.timeline = scope.passageResults.results.titleList;
                 scope.displayLimit = 5;
                 scope.addMoreItems = function() {
