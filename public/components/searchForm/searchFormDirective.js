@@ -105,22 +105,13 @@
                         delete scope.main.formData.duplicates;
                     }
                     var urlString = URL.objectToString(scope.main.formData);
-                    $log.debug(urlString)
                     if (urlString.length === 0) {
                         alert("You haven't searched for anything, please fill in one of the search boxes");
                     } else {
                         hideLandingPage();
-                        $location.url('/query/' + scope.main.dbActive + '/search?' + urlString)
+                        $location.url('/nav/' + scope.main.dbActive + '/query/search?' + urlString)
                     }
                 };
-                scope.commonplaceTerms = {};
-                scope.commonplaceSubmit = function() {
-                    hideLandingPage();
-                    var queryString = URL.objectToString(scope.main.commonplace)
-                    var urlString = "/commonplace/" + scope.main.dbActive + "/search?" + queryString;
-                    $log.debug(urlString);
-                    $location.url(urlString)
-                }
                 scope.toggleForm = function() {
                     if (scope.hideForm) {
                         angular.element('.hiding-element').velocity('slideDown');
@@ -153,14 +144,11 @@
                     }
                 }
                 scope.showLatinAuthorList = false;
+                console.log(scope.main.webConfig)
+                scope.latinAuthors = scope.main.webConfig.latinAuthors;
                 scope.listAuthors = function() {
                     if (!scope.showLatinAuthorList) {
-                        var urlString = "/api/getLatinAuthors";
-                        $http.get(urlString).then(function(response) {
-                            scope.latinAuthors = sortObject(response.data);
-                            $log.debug(scope.latinAuthors)
-                            scope.showLatinAuthorList = true;
-                        });
+                        scope.showLatinAuthorList = true;
                     } else {
                         scope.showLatinAuthorList = false;
                     }
@@ -185,6 +173,7 @@
                     scope.main.formData[field] = '"' + value + '"';
                     scope.showSourceModuleList = false;
                     scope.showTargetModuleList = false;
+                    scope.showLatinAuthorList = false;
                 }
                 scope.$watch("main.hideSearchForm", function(currentValue) {
                     if (currentValue) {

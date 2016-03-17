@@ -1,27 +1,22 @@
 <div id="facet-search">
-    <div id="facet-selection">
-        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
-            <span id="menu-header">Browse by facet</span></span>
-            <span class="caret"></span>
-		</button>
-        <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="dLabel" ng-if="main.queryType == 'sharedPassages'">
-            <li class="dropdown-header">Source</li>
-            <li><a href="#" ng-click="getFacet('sourceauthor')">Author</a></li>
-            <li><a href="#" ng-click="getFacet('sourcetitle')">Title</a></li>
-            <li><a href="#" ng-click="getFacet('sourcemodulename')">Module</a></li>
-            <li><a href="#" ng-click="getFacet('sourcedate')">Date (decade)</a></li>
-            <li role="separator" class="divider"></li>
-            <li class="dropdown-header">Target</li>
-            <li><a href="#" ng-click="getFacet('targetauthor')">Author</a></li>
-            <li><a href="#" ng-click="getFacet('targettitle')">Title</a></li>
-            <li><a href="#" ng-click="getFacet('targetmodulename')">Module</a></li>
-            <li><a href="#" ng-click="getFacet('targetdate')">Date (decade)</a></li>
-        </ul>
-        <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="dLabel" ng-if="main.queryType == 'commonplaces' || main.queryType == 'topicView'">
-            <li><a href="#" ng-click="getFacet('author')">Author</a></li>
-            <li><a href="#" ng-click="getFacet('title')">Title</a></li>
-            <li><a href="#" ng-click="getFacet('date')">Date (decade)</a></li>
-        </ul>
+    <div class="panel panel-default clearfix" id="facet-selection">
+        <button type="button" class="btn btn-primary btn-sm close-facets" ng-click="hideFacets()">X</button>
+        <h4 id="facet-header">browse by facet</h4>
+        <div class="list-group" ng-if="showFacetSelection">
+            <div class="dropdown-header facet-divider">Earlier Use</div>
+            <a class="list-group-item" href="#" ng-click="getFacet('sourceauthor')">Author</a>
+            <a class="list-group-item" href="#" ng-click="getFacet('sourcetitle')">Title</a>
+            <a class="list-group-item" href="#" ng-click="getFacet('sourcemodulename')">Module</a>
+            <a class="list-group-item" href="#" ng-click="getFacet('sourcedate')">Date (decade)</a>
+            <div class="dropdown-header facet-divider" style="margin-top:10px">Later Use</div>
+            <a class="list-group-item" href="#" ng-click="getFacet('targetauthor')">Author</a>
+            <a class="list-group-item" href="#" ng-click="getFacet('targettitle')">Title</a>
+            <a class="list-group-item" href="#" ng-click="getFacet('targetmodulename')">Module</a>
+            <a class="list-group-item" href="#" ng-click="getFacet('targetdate')">Date (decade)</a>
+        </div>
+        <button type="button" class="btn btn-default pull-right" style="margin-top: -35px;" ng-if="!showFacetSelection" ng-click="displayFacetSelection()">
+            <span class="glyphicon glyphicon-menu-down"></span>
+        </button>
         <spinner show="{{ facetLoading }}"></spinner>
     </div>
     <div class="panel panel-default facet-results" ng-if="showfacet">

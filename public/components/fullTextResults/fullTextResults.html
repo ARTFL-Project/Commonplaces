@@ -1,64 +1,72 @@
-<div id="full-text-results">
-    <spinner show="{{ loading }}"></spinner>
-    <h4 ng-if="!loading">
-        Your query returned
-        <span class="dots" ng-if="waitingForCount"><span>.</span><span>.</span><span>.</span></span>
-        {{ totalCount }} results
-    </h4>
-    <facet-search></facet-search>
-    <div infinite-scroll="addMoreResults()" infinite-scroll-distance="1" infinite-scroll-disabled="loadingData" infinite-scroll-immediate-check="false">
-        <div class="panel panel-default result alignment" ng-repeat="result in fullTextResults.fullList | limitTo: displayLimit track by $index">
-            <h5 class="result-number">{{ ::$index + 1}}</h5>
-            <div ng-if="result.authorident == 1" style="margin-top: 10px;">
-                <span class="info"><img src="img/lightbulb.png" alt="" height="25" width="25" /></span>&nbsp;
-                <b>This is probably a Bible quote</b>
-            </div>
-            <div class="row">
-                <div style="position: absolute; left: 50%; transform: translate(0%,150%); z-index: 10;">
-                    <h2 style="margin-left: -15px">=></h2>
+<div class="row clearfix">
+    <div style="position: relative">
+        <button type="button" class="btn btn-primary" style="position: absolute; right: 15px; top: 15px; z-index:50;" ng-if="!fullText.facetVisible" ng-click="makeFacetsVisible()">
+            Show Facet Selection
+        </button>
+    </div>
+    <div id="full-text-results" class="col-xs-12 col-sm-7 col-md-9">
+        <spinner show="{{ loading }}"></spinner>
+        <h4 ng-if="!loading">
+            Your query returned
+            <span class="dots" ng-if="waitingForCount"><span>.</span><span>.</span><span>.</span></span>
+            {{ totalCount }} shared passages
+        </h4>
+        <div infinite-scroll="addMoreResults()" infinite-scroll-distance="1" infinite-scroll-disabled="loadingData" infinite-scroll-immediate-check="false">
+            <div class="panel panel-default result alignment" ng-repeat="result in fullTextResults.fullList | limitTo: displayLimit track by $index">
+                <h5 class="result-number">{{ ::$index + 1}}</h5>
+                <div ng-if="result.authorident == 1" style="margin-top: 10px;">
+                    <span class="info"><img src="img/lightbulb.png" alt="" height="25" width="25" /></span>&nbsp;
+                    <b>This is probably a Bible quote</b>
                 </div>
-                <div class="col-xs-12 col-sm-6 source-alignment">
-                    <h5>
-                        <b>{{ ::result.sourceAuthor }}</b>,
-                        <i>{{ ::result.sourceTitle }}</i>&nbsp;
-                        <b>[{{ ::result.sourceDate }}]</b>
-                    </h5>
-                    <p>
-                        {{ ::result.sourceLeftContext }}
-                        <span class="highlight">
-                            {{ ::result.sourceMatchContext }}
+                <div class="row">
+                    <div class="col-xs-12 col-sm-6 source-alignment">
+                        <h4 class="passage-header">earlier use</h4>
+                        <h5>
+                            <b>{{ ::result.sourceAuthor }}</b>,
+                            <i>{{ ::result.sourceTitle }}</i>&nbsp;
+                            <b>[{{ ::result.sourceDate }}]</b>
+                        </h5>
+                        <p>
+                            {{ ::result.sourceLeftContext }}
+                            <span class="highlight">
+                                {{ ::result.sourceMatchContext }}
+                            </span>
+                            {{ ::result.sourceRightContext}}
+                        </p>
+                    </div>
+                    <div class="col-xs-12 col-sm-6 target-alignment">
+                        <h4 class="passage-header">later use</h4>
+                        <h5>
+                            <b>{{ ::result.targetAuthor }}</b>,
+                            <i>{{ ::result.targetTitle }}</i>&nbsp;
+                            <b>[{{ ::result.targetDate }}]</b>
+                        </h5>
+                        <p>
+                            {{ ::result.targetLeftContext }}
+                            <span class="highlight">
+                                {{ ::result.targetMatchContext }}
+                            </span>
+                            {{ ::result.targetRightContext}}
+                        </p>
+                    </div>
+                </div>
+                <div ng-if="result.passageIDCount > 1">
+                    <a href="/nav/{{ ::dbname }}/passage/{{ ::result.passageID }}">
+                        View similar passages in timeline
+                        <span ng-if="main.webConfig.debug">
+                            ({{ result.passageIDCount }} PhiloLine matching pairs)
                         </span>
-                        {{ ::result.sourceRightContext}}
-                    </p>
-                </div>
-                <div class="col-xs-12 col-sm-6 target-alignment">
-                    <h5>
-                        <b>{{ ::result.targetAuthor }}</b>,
-                        <i>{{ ::result.targetTitle }}</i>&nbsp;
-                        <b>[{{ ::result.targetDate }}]</b>
-                    </h5>
-                    <p>
-                        {{ ::result.targetLeftContext }}
-                        <span class="highlight">
-                            {{ ::result.targetMatchContext }}
-                        </span>
-                        {{ ::result.targetRightContext}}
-                    </p>
+                    </a>
                 </div>
             </div>
-            <div ng-if="result.passageIDCount > 1">
-                <a href="passage/{{ ::dbname }}/{{ ::result.passageID }}">
-                    View similar passages in timeline
-                    <span ng-if="main.webConfig.debug">
-                        ({{ result.passageIDCount }} PhiloLine matching pairs)
-                    </span>
-                </a>
+            <div style="text-align: center;" ng-show="loadingData">
+                <h4>
+                    Loading data<span class="dots" ng-if="loadingData"><span>.</span><span>.</span><span>.</span></span>
+                </h4>
             </div>
         </div>
-        <div style="text-align: center;" ng-show="loadingData">
-            <h4>
-                Loading data<span class="dots" ng-if="loadingData"><span>.</span><span>.</span><span>.</span></span>
-            </h4>
-        </div>
+    </div>
+    <div id="facet-container" class="hidden-xs col-sm-5 col-md-3">
+        <facet-search></facet-search>
     </div>
 </div>

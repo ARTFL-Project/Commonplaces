@@ -16,6 +16,7 @@
   "dependencies": {
     "angular-spinner": "git://github.com/urish/angular-spinner.git#~0.6.2",
     "ngInfiniteScroll": "1.0.0",
-    "timesheet.js": "https://github.com/sbstjn/timesheet.js.git"
+    "timesheet.js": "https://github.com/sbstjn/timesheet.js.git",
+    "angular-chart.js": "~0.9.0"
   }
 }

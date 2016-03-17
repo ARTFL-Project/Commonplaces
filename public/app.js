@@ -10,7 +10,6 @@
 
             vm.hideLanding = true;
             vm.hideSearchForm = false;
-            vm.welcomePage = false;
             vm.landingPage = true;
             vm.webConfig = webConfig;
             vm.debug = webConfig.debug;
@@ -20,13 +19,13 @@
             vm.formData.duplicates = "";
             vm.formData.sorting = -1;
             vm.commonplace = {};
-            vm.dbActive = "merge";
+            vm.dbActive = angular.element('body').data('db');
+            console.log(vm.dbActive)
 
             vm.openLandingPage = function() {
                 if (vm.hideSearchForm) {
                     vm.hideSearchForm = false;
                 }
-                vm.welcomePage = true;
             }
 		}
 })();

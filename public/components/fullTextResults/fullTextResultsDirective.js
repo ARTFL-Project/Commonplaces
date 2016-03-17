@@ -53,6 +53,12 @@
                         });
                     }
                 }
+                scope.makeFacetsVisible = function() {
+                    angular.element('#full-text-results').removeClass('col-sm-12').addClass('col-sm-7 col-md-9');
+                    angular.element('#facet-container').show();
+                    scope.fullText.facetVisible = true;
+
+                }
             }
         }
     }

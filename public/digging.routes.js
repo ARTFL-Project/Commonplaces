@@ -7,23 +7,23 @@
 
 	function DiggingAppConfig($routeProvider, $locationProvider) {
 		$routeProvider.
-            // when('/welcome', {
-            //     templateUrl: 'components/welcomePage/welcomePage.html'
-            // }).
-            when('/passage/:dbname/:passageID', {
+            when('/', {
+                controller: 'MainController'
+            }).
+            when('/nav/:dbname', {
+                controller: 'MainController'
+            }).
+            when('/nav/:dbname/passage/:passageID', {
                 templateUrl: 'components/passageResults/passageResults.html',
 				controller: 'PassageController',
 				controllerAs: 'passageResults'
             }).
-			when('/query/:dbname/search?:queryArgs', {
+			when('/nav/:dbname/query/search?:queryArgs', {
 				templateUrl: 'components/fullTextResults/fullTextContainer.html',
 				controller: 'FullTextController',
 				controllerAs: 'fullText'
 			}).
-            when('/topic/:dbname/:topicID', {
-                templateUrl: 'components/topicView/topicView.html'
-            }).
-            when('/commonplace/:dbname/search?:queryArgs', {
+            when('/nav/:dbname/commonplace/search?:queryArgs', {
                 templateUrl: 'components/commonplaceSearch/commonplaceSearch.html'
             }).
 			otherwise({

@@ -24,6 +24,7 @@
                         var urlString = "/api/" + scope.main.dbActive + "/topicFacet/" + $routeParams.topicID + "?"
                     }
                     urlString += URL.objectToString(formData);
+                    scope.showFacetSelection = false;
                     $http.get(urlString).then(function(response) {
                         scope.facetData = response.data;
                         scope.showfacet = true;
@@ -32,19 +33,22 @@
                 }
                 scope.closeFacets = function() {
                     scope.showfacet = false;
+                    scope.showFacetSelection = true;
+                }
+                scope.showFacetSelection = true;
+                scope.displayFacetSelection = function() {
+                    scope.showFacetSelection = true;
+                }
+                scope.hideFacets = function () {
+                    angular.element('#full-text-results').removeClass('col-sm-7 col-md-9').addClass('col-sm-12');
+                    angular.element('#facet-container').hide();
+                    scope.fullText.facetVisible = false;
                 }
                 scope.goToResult = function(queryType, facet) {
                     var currentFormData = angular.copy($location.search());
                     currentFormData[scope.selectedFacet] = '"' + facet + '"';
                     var urlString = URL.objectToString(currentFormData);
-                    if (queryType == "sharedPassages") {
-                        var link = "/query/" + scope.main.dbActive + "/search?" + urlString;
-                    } else if (queryType == "commonplaces") {
-                        var link = "/commonplace/" + scope.main.dbActive + "/search?" + urlString;
-                    } else if (queryType == "topicView") {
-                        var link = "/topic/" + scope.main.dbActive + "/" + $routeParams.topicID + "?" + urlString;
-                        $log.debug(link)
-                    }
+                    var link = "/nav/" + scope.main.dbActive + "/query/search?" + urlString;
                     $location.url(link);
                 }
             }

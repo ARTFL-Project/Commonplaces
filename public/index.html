@@ -4,13 +4,14 @@
 <head>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Commonplaces in the 18th Century</title>
+  <title>{{ .title }}</title>
   <link href="http://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic,700,700italic&subset=latin,cyrillic-ext,greek-ext,greek,latin-ext,cyrillic" rel="stylesheet">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+  <link rel="stylesheet" href="public/bower_components/angular-chart.js/dist/angular-chart.min.css">
   <link rel="stylesheet" href="css/style.css">
 </head>
 
-<body ng-controller="MainController as main">
+<body ng-controller="MainController as main" data-db="{{ .dbSelected }}">
   <!-- Fixed navbar -->
   <nav class="navbar navbar-inverse navbar-default navbar-fixed-top">
     <div class="container">
@@ -36,8 +37,7 @@
   </nav>
   <div class="container-fluid" style="margin-top: 70px;">
       <!-- <welcome-page ng-if="main.welcomePage"></welcome-page> -->
-      <source-selection></source-selection>
-      <landing-page ng-if="!main.welcomePage"></landing-page>
+      <search-form></search-form>
       <div ng-view></div>
   </div>
 
@@ -55,16 +55,16 @@
   <script src="//cdn.jsdelivr.net/velocity/1.2.2/velocity.min.js"></script>
   <script src="//cdn.jsdelivr.net/velocity/1.2.2/velocity.ui.min.js"></script>
   <script src="public/bower_components/ngInfiniteScroll/build/ng-infinite-scroll.min.js"></script>
+  <script src="public/bower_components/Chart.js/Chart.min.js"></script>
+  <script src="public/bower_components/angular-chart.js/dist/angular-chart.min.js"></script>
   <script src="public/bootstrapApp.js"></script>
   <script src="public/app.js"></script>
   <script src="public/services.js"></script>
   <script src="public/filters.js"></script>
   <script src="public/digging.routes.js"></script>
   <script src="public/values.js"></script>
-  <script src="public/components/sourceSelection/sourceSelectionDirective.js"></script>
   <script src="public/components/passageResults/passageResultsController.js"></script>
   <script src="public/components/passageResults/passageResultsDirective.js"></script>
-  <script src="public/components/landingPage/landingPageDirective.js"></script>
   <script src="public/components/searchForm/searchFormDirective.js"></script>
   <script src="public/components/fullTextResults/fullTextController.js"></script>
   <script src="public/components/fullTextResults/fullTextResultsDirective.js"></script>

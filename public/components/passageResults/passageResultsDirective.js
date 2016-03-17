@@ -2,13 +2,13 @@
     'use strict';
     angular
         .module('DiggingApp')
-        .directive('uniqueAuthors', uniqueAuthors)
+        .directive('uniqueTitles', uniqueTitles)
         .directive('timeline', timeline);
 
-    function uniqueAuthors($http, $timeout, $log, URL) {
+    function uniqueTitles($http, $timeout, $log, URL) {
         return {
             restrict: 'E',
-            templateUrl: 'components/passageResults/uniqueAuthors.html',
+            templateUrl: 'components/passageResults/uniqueTitles.html',
             link: function(scope, element, attrs) {
                 scope.displayLimit = 20;
                 scope.addMoreAuthors = function() {
@@ -45,11 +45,60 @@
     }
 
     function timeline($log) {
+        var getDecade = function(date) {
+            date = date.toString().slice(0, -1) + '0';
+            if (date == '-0') {
+                date = '-10'
+            }
+            var startDate = parseInt(date);
+            var endDate = startDate + 9
+            var decade = startDate.toString() + '-' + endDate.toString();
+            return decade;
+        }
         return {
             restrict: 'E',
             templateUrl: 'components/passageResults/timeline.html',
             link: function(scope, element) {
                 scope.timeline = scope.passageResults.results.titleList;
+                Chart.defaults.global.maintainAspectRatio = false;
+                Chart.defaults.global.showTooltips = false;
+                scope.chartOptions = {
+                    pointDotRadius : 1,
+                    //scaleShowGridLines: false,
+                    scaleGridLineColor : "rgba(256,256,256,.1)",
+                     scaleShowVerticalLines: false,
+                     bezierCurveTension : 0.1,
+                    scaleFontColor: "rgba(256,256,256,1)"
+                }
+                scope.colours = [{ // default
+                    "fillColor": "rgba(224, 108, 112, .2)",
+                    "strokeColor": "rgba(207,100,103,1)",
+                    "pointColor": "rgba(256,256,256,1)",
+                    "pointStrokeColor": "#fff",
+                    "pointHighlightFill": "#fff",
+                    "pointHighlightStroke": "rgba(151,187,205,0.8)"
+                }];
+                scope.chartData = [
+                    []
+                ];
+                scope.chartSeries = ["Overview of usage"];
+                scope.chartLabels = [];
+                var dateCounts = {};
+                for (var i = 0; i < scope.timeline.length; i += 1) {
+                    var decade = getDecade(scope.timeline[i].date);
+                    if (!(dateCounts.hasOwnProperty(decade))) {
+                        dateCounts[decade] = scope.timeline[i].result.length;
+                        scope.chartLabels.push(decade);
+                    } else {
+                        dateCounts[decade] += scope.timeline[i].result.length;
+                    }
+                }
+                for (var i=0; i < scope.chartLabels.length; i += 1) {
+                    var decade = scope.chartLabels[i];
+                    scope.chartData[0].push(dateCounts[decade]);
+                    console.log(decade, dateCounts[decade])
+                }
+                $log.debug(scope.chartLabels)
                 scope.displayLimit = 5;
                 scope.addMoreItems = function() {
                     scope.displayLimit += 5;
@@ -81,7 +130,7 @@
                 scope.formatTitle = function(title) {
                     if (title.length > 300) {
                         var titleSplit = title.slice(0, 300).split(' ');
-                        title = titleSplit.slice(0, titleSplit.length-1).join(" ") + " [...]";
+                        title = titleSplit.slice(0, titleSplit.length - 1).join(" ") + " [...]";
                     }
                     return title;
                 }

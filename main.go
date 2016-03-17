@@ -18,28 +18,27 @@ import (
 
 type (
 	config struct {
-		Port      string                            `json:"port"`
-		Databases map[string]map[string]interface{} `json:"databases"`
-		Debug     bool                              `json:"debug"`
-		Modules   []string                          `json:"modules"`
+		Port         string                            `json:"port"`
+		Databases    map[string]map[string]interface{} `json:"databases"`
+		Debug        bool                              `json:"debug"`
+		Modules      []string                          `json:"modules"`
+		LatinAuthors []string                          `json:"latinAuthors"`
 	}
 
 	resultObject struct {
-		Author       string         `json:"author"`
-		Title        string         `json:"title"`
-		Date         int32          `json:"date"`
-		LeftContext  string         `json:"leftContext"`
-		RightContext string         `json:"rightContext"`
-		MatchContext string         `json:"matchContext"`
-		PhiloID      string         `json:"philoID"`
-		DatabaseName string         `json:"databaseName"`
-		PassageID    string         `json:"passageID"`
-		OtherTitles  map[string]int `json:"otherTitles,omitempty"`
-		AuthorIdent  string         `json:"authorident"`
+		Author       string `json:"author"`
+		Title        string `json:"title"`
+		Date         int32  `json:"date"`
+		LeftContext  string `json:"leftContext"`
+		RightContext string `json:"rightContext"`
+		MatchContext string `json:"matchContext"`
+		PhiloID      string `json:"philoID"`
+		DatabaseName string `json:"databaseName"`
+		PassageID    string `json:"passageID"`
+		AuthorIdent  string `json:"authorident"`
 	}
 
 	results struct {
-		Commonplace resultObject   `json:"commonplace"`
 		PassageList []resultObject `json:"passageList"`
 		TitleList   dateGroup      `json:"titleList"`
 	}
@@ -199,64 +198,50 @@ func findCommonPlaces(c *gin.Context) {
 		var authorIdent string
 		err := rows.Scan(&author, &title, &date, &leftContext, &matchContext, &rightContext, &philoID, &databaseName, &targetAuthor, &targetTitle, &targetDate, &targetLeftContext, &targetMatchContext, &targetRightContext, &targetPhiloID, &targetmodulename, &authorIdent)
 		if err != nil {
-			fmt.Println("died while scanning", err)
+			c.Error(err)
 		}
 		author = strings.Replace(author, "<fs/>", "; ", -1)
 		title = strings.Replace(title, "<fs/>", "; ", -1)
 		targetAuthor = strings.Replace(targetAuthor, "<fs/>", "; ", -1)
 		targetTitle = strings.Replace(targetTitle, "<fs/>", "; ", -1)
-		otherTitles := make(map[string]int, 0)
-		sourceObject := resultObject{author, title, date, leftContext, rightContext, matchContext, philoID, databaseName, passageID, otherTitles, authorIdent}
 		if _, ok := filteredAuthors[author]; !ok {
-			filteredAuthors[author] = sourceObject
+			filteredAuthors[author] = resultObject{author, title, date, leftContext, rightContext, matchContext, philoID, databaseName, passageID, authorIdent}
 		} else if _, ok := filteredAuthors[author]; ok {
 			if filteredAuthors[author].Date > date {
-				sourceObject.OtherTitles = filteredAuthors[author].OtherTitles
-				filteredAuthors[author] = sourceObject
-			} else if filteredAuthors[author].Date == sourceObject.Date && len(filteredAuthors[author].MatchContext) < len(sourceObject.MatchContext) {
-				sourceObject.OtherTitles = filteredAuthors[author].OtherTitles
-				filteredAuthors[author] = sourceObject
-			}
-			if filteredAuthors[author].Date != sourceObject.Date {
-				filteredAuthors[author].OtherTitles[sourceObject.Title] = 1
+				filteredAuthors[author] = resultObject{author, title, date, leftContext, rightContext, matchContext, philoID, databaseName, passageID, authorIdent}
+			} else if filteredAuthors[author].Date == date && len(filteredAuthors[author].MatchContext) < len(matchContext) {
+				filteredAuthors[author] = resultObject{author, title, date, leftContext, rightContext, matchContext, philoID, databaseName, passageID, authorIdent}
 			}
 		}
-		if _, ok := filteredTitles[sourceObject.Title]; !ok {
-			filteredTitles[sourceObject.Title] = sourceObject
-		} else if filteredTitles[sourceObject.Title].Date > sourceObject.Date {
-			filteredTitles[sourceObject.Title] = sourceObject
+		if _, ok := filteredTitles[title]; !ok {
+			filteredTitles[title] = resultObject{author, title, date, leftContext, rightContext, matchContext, philoID, databaseName, passageID, authorIdent}
+		} else if filteredTitles[title].Date > date {
+			filteredTitles[title] = resultObject{author, title, date, leftContext, rightContext, matchContext, philoID, databaseName, passageID, authorIdent}
 		}
 		// Process target results
-		targetOtherTitles := make(map[string]int, 0)
-		targetObject := resultObject{targetAuthor, targetTitle, targetDate, targetLeftContext, targetRightContext, targetMatchContext, targetPhiloID, targetmodulename, passageID, targetOtherTitles, authorIdent}
 		if _, ok := filteredAuthors[targetAuthor]; !ok {
-			filteredAuthors[targetAuthor] = targetObject
+			filteredAuthors[targetAuthor] = resultObject{targetAuthor, targetTitle, targetDate, targetLeftContext, targetRightContext, targetMatchContext, targetPhiloID, targetmodulename, passageID, authorIdent}
 		} else if _, ok := filteredAuthors[targetAuthor]; ok {
 			if filteredAuthors[targetAuthor].Date > date {
-				targetObject.OtherTitles = filteredAuthors[targetAuthor].OtherTitles
-				filteredAuthors[targetAuthor] = targetObject
-			} else if filteredAuthors[targetAuthor].Date == targetObject.Date && len(filteredAuthors[targetAuthor].MatchContext) < len(targetObject.MatchContext) {
-				targetObject.OtherTitles = filteredAuthors[targetAuthor].OtherTitles
-				filteredAuthors[targetAuthor] = targetObject
-			}
-			if filteredAuthors[targetAuthor].Date != targetObject.Date && len(filteredAuthors[targetAuthor].OtherTitles) > 0 {
-				filteredAuthors[targetAuthor].OtherTitles[targetObject.Title] = 1
+				filteredAuthors[targetAuthor] = resultObject{targetAuthor, targetTitle, targetDate, targetLeftContext, targetRightContext, targetMatchContext, targetPhiloID, targetmodulename, passageID, authorIdent}
+			} else if filteredAuthors[targetAuthor].Date == targetDate && len(filteredAuthors[targetAuthor].MatchContext) < len(targetMatchContext) {
+				filteredAuthors[targetAuthor] = resultObject{targetAuthor, targetTitle, targetDate, targetLeftContext, targetRightContext, targetMatchContext, targetPhiloID, targetmodulename, passageID, authorIdent}
 			}
 		}
 		if _, ok := filteredTitles[targetTitle]; !ok {
-			filteredTitles[targetObject.Title] = targetObject
-		} else if filteredTitles[targetTitle].Date > targetObject.Date {
-			filteredTitles[targetObject.Title] = targetObject
+			filteredTitles[targetTitle] = resultObject{targetAuthor, targetTitle, targetDate, targetLeftContext, targetRightContext, targetMatchContext, targetPhiloID, targetmodulename, passageID, authorIdent}
+		} else if filteredTitles[targetTitle].Date > targetDate {
+			filteredTitles[targetTitle] = resultObject{targetAuthor, targetTitle, targetDate, targetLeftContext, targetRightContext, targetMatchContext, targetPhiloID, targetmodulename, passageID, authorIdent}
 		}
 	}
-	var passageList []resultObject
-	for _, value := range filteredAuthors {
-		passageList = append(passageList, value)
-	}
-	sort.Sort(resultObjectDate(passageList))
-	var titleList dateGroup
-	var resultMap = make(map[int32][]resultObject, 1)
+	var uniqueTitles []resultObject
 	for _, value := range filteredTitles {
+		uniqueTitles = append(uniqueTitles, value)
+	}
+	sort.Sort(resultObjectDate(uniqueTitles))
+	var uniqueAuthors dateGroup
+	var resultMap = make(map[int32][]resultObject, 1)
+	for _, value := range filteredAuthors {
 		if _, ok := resultMap[value.Date]; !ok {
 			resultMap[value.Date] = []resultObject{value}
 		} else {
@@ -264,10 +249,10 @@ func findCommonPlaces(c *gin.Context) {
 		}
 	}
 	for key, value := range resultMap {
-		titleList = append(titleList, groupedByDate{key, value})
+		uniqueAuthors = append(uniqueAuthors, groupedByDate{key, value})
 	}
-	sort.Sort(titleList)
-	fullResults := results{passageList[0], passageList[1:], titleList}
+	sort.Sort(uniqueAuthors)
+	fullResults := results{uniqueTitles, uniqueAuthors}
 	c.JSON(200, fullResults)
 }
 
@@ -519,44 +504,6 @@ func fulltextFacet(c *gin.Context) {
 	c.JSON(200, results)
 }
 
-func getWordDistribution(c *gin.Context, dbname string, topic string) string {
-	dbname += "_topic_words"
-	query := fmt.Sprintf("SELECT words FROM %s WHERE topic=?", dbname)
-	var words string
-	err := db.QueryRow(query, topic).Scan(&words)
-	if err != nil {
-		c.Error(err)
-		words = ""
-	}
-	words = strings.Replace(words, "{", "", 1)
-	words = strings.Replace(words, "}", "", 1)
-	words = strings.Replace(words, ",", ", ", -1)
-	return words
-}
-
-func getLatinAuthors(c *gin.Context) {
-	query := "select sourceauthor from latin"
-	var err error
-	var rows *sql.Rows
-	rows, err = db.Query(query)
-	if err != nil {
-		c.Error(err)
-	}
-
-	defer rows.Close()
-
-	resultsMap := make(map[string]int)
-	for rows.Next() {
-		var author *string
-		newErr := rows.Scan(&author)
-		if newErr != nil {
-			c.Error(newErr)
-		}
-		resultsMap[*author]++
-	}
-	c.JSON(200, resultsMap)
-}
-
 func exportConfig(c *gin.Context) {
 	c.JSON(200, webConfig)
 }
@@ -567,8 +514,13 @@ func index(c *gin.Context) {
 		c.Header("Pragma", "no-cache")
 		c.Header("Expires", "0")
 	}
+	dbname := c.Param("dbname")
+	if dbname == "" {
+		dbname = "ecco"
+	}
 	c.HTML(http.StatusOK, "index.html", gin.H{
-		"title": "Main website",
+		"title":      "Main website",
+		"dbSelected": dbname,
 	})
 }
 
@@ -606,14 +558,15 @@ func main() {
 
 	// Routes
 	router.GET("/", index)
-	router.GET("/passage/:dbname/:passageID", index)
-	router.GET("/query/:dbname/search", index)
-	router.GET("/topic/:dbname/:topicID", index)
-	router.GET("/commonplace/:dbname/search", index)
+	mainNav := router.Group("/nav/")
+	mainNav.GET("/:dbname", index)
+	mainNav.GET("/:dbname/passage/:passageID", index)
+	mainNav.GET("/:dbname/query/search", index)
+	mainNav.GET("/:dbname/topic/:topicID", index)
+	mainNav.GET("/:dbname/commonplace/search", index)
 
 	// API calls
 	api := router.Group("/api/")
-	// api.GET("getLatinAuthors", getLatinAuthors)
 	api.GET("/:dbname/commonplaces/:passageID", findCommonPlaces)
 	api.GET("/:dbname/fulltext", fullTextQuery)
 	api.GET("/:dbname/fulltextcount", fulltextCount)

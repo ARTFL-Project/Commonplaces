@@ -1,17 +1,20 @@
 <div id="timeline-view">
-  <div id="timeline-container" infinite-scroll="addMoreItems()" infinite-scroll-distance="1">
-    <div class="timeline-dates timeline-animate" ng-repeat="date in timeline | limitTo: displayLimit">
-      <div class="btn btn-lg btn-default active">{{ date.date }}</div>
-      <div class="timeline-events" ng-repeat="event in date.result track by $index">
-        <h5 class="event-link" ng-click="getCurrentPassage($event)"><a href="">{{ event.author }}<br><i>{{ formatTitle(event.title) }}</i></a></h5>
-        <p class="timeline-text-content">
-            <span class="text-content">
-                {{ event.leftContext }}
-                <span class="highlight">{{ event.matchContext }}</span>
-                {{ event.rightContext }}
-            </span>
-        </p>
-      </div>
+    <div id="timeline-chart" style="padding: 20px;">
+            <canvas id="line" class="chart chart-line" chart-data="chartData" chart-labels="chartLabels" chart-series="chartSeries" chart-legend="false" height="200" width="80%" chart-colours="colours" chart-options="chartOptions">
+            </canvas>
     </div>
-  </div>
+    <div id="timeline-container" infinite-scroll="addMoreItems()" infinite-scroll-distance="1">
+        <div class="timeline-dates timeline-animate" ng-repeat="date in timeline | limitTo: displayLimit">
+            <div class="btn btn-lg btn-default active">{{ date.date }}</div>
+            <div class="timeline-events" ng-repeat="event in date.result track by $index">
+                <h5 class="event-link" ng-click="getCurrentPassage($event)"><a href="">{{ event.author }}<br><i>{{ formatTitle(event.title) }}</i></a></h5>
+                <p class="timeline-text-content">
+                    <span class="text-content">
+                {{ event.leftContext }}
+                <span class="highlight">{{ event.matchContext }}</span> {{ event.rightContext }}
+                    </span>
+                </p>
+            </div>
+        </div>
+    </div>
 </div>
