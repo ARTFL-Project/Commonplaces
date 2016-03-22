@@ -14,7 +14,7 @@
         vm.dbname = $routeParams.dbname;
         $http.get('api/' + vm.dbname + '/commonplaces/' + vm.passageID).then(function(response) {
             vm.results = response.data;
-			vm.commonplace = vm.results.passageList[0];
+			vm.commonplace = vm.results.titleList[0].result[0];
             vm.timeline = [];
             vm.count = response.data.length;
             vm.resultsView = "timeline";

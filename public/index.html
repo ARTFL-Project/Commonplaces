@@ -22,8 +22,8 @@
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </button>
-        <a class="navbar-brand" href="/" ng-click="main.openLandingPage()">
-          Commonplaces in the 18<sup style="font-variant: normal; font-size: .5em">th</sup> Century : v0.1
+        <a class="navbar-brand" href="http://commonplacecultures.org/">
+          Commonplace Cultures
         </a>
       </div>
       <div id="navbar" class="navbar-collapse collapse">
@@ -34,9 +34,9 @@
       </div>
       <!--/.nav-collapse -->
     </div>
+    <!--<button type="button" class="btn btn-default" style="position: absolute;bottom:0;right:0" ng-if="main.backToTopButton">Back To Top</button> -->
   </nav>
   <div class="container-fluid" style="margin-top: 70px;">
-      <!-- <welcome-page ng-if="main.welcomePage"></welcome-page> -->
       <search-form></search-form>
       <div ng-view></div>
   </div>
@@ -57,6 +57,9 @@
   <script src="public/bower_components/ngInfiniteScroll/build/ng-infinite-scroll.min.js"></script>
   <script src="public/bower_components/Chart.js/Chart.min.js"></script>
   <script src="public/bower_components/angular-chart.js/dist/angular-chart.min.js"></script>
+  <script src="public/bower_components/angular-ui-scrollpoint/dist/scrollpoint.min.js">
+
+  </script>
   <script src="public/bootstrapApp.js"></script>
   <script src="public/app.js"></script>
   <script src="public/services.js"></script>

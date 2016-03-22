@@ -144,7 +144,6 @@
                     }
                 }
                 scope.showLatinAuthorList = false;
-                console.log(scope.main.webConfig)
                 scope.latinAuthors = scope.main.webConfig.latinAuthors;
                 scope.listAuthors = function() {
                     if (!scope.showLatinAuthorList) {
@@ -153,33 +152,63 @@
                         scope.showLatinAuthorList = false;
                     }
                 }
-                scope.showSourceModuleList = false;
-                scope.showTargetModuleList = false;
-                scope.listSourceModules = function() {
-                    if (!scope.showSourceModuleList) {
-                        scope.showSourceModuleList = true;
+                scope.showTopAuthorList = false;
+                scope.topAuthors = scope.main.webConfig.topAuthors;
+                scope.listTopAuthors = function() {
+                    if (!scope.showTopAuthorList) {
+                        scope.showTopAuthorList = true;
                     } else {
-                        scope.showSourceModuleList = false;
+                        scope.showTopAuthorList = false;
                     }
                 }
-                scope.listTargetModules = function() {
-                    if (!scope.showTargetModuleList) {
-                        scope.showTargetModuleList = true;
+                scope.showTopTitleList = false;
+                scope.topTitles = scope.main.webConfig.topTitles;
+                scope.listTopTitles = function() {
+                    if (!scope.showTopTitleList) {
+                        scope.showTopTitleList = true;
                     } else {
-                        scope.showTargetModuleList = false;
+                        scope.showTopTitleList = false;
                     }
+                }
+                scope.moduleNames = scope.main.webConfig.modules;
+                scope.sourceModuleSelected = "None";
+                scope.targetModuleSelected = 'None';
+                scope.selectModule = function(key, moduleName) {
+                    if (moduleName == 'None') {
+                        delete scope.main.formData[key];
+                    } else {
+                        scope.main.formData[key] = '"' + moduleName + '"';
+                    }
+                    if (key.substring(0,6) === 'source') {
+                        scope.sourceModuleSelected = moduleName;
+                    } else {
+                        scope.targetModuleSelected = moduleName;
+                    }
+
                 }
                 scope.fillForm = function(field, value) {
                     scope.main.formData[field] = '"' + value + '"';
                     scope.showSourceModuleList = false;
                     scope.showTargetModuleList = false;
                     scope.showLatinAuthorList = false;
+                    scope.showTopAuthorList = false;
+                    scope.showTopTitleList = false;
                 }
                 scope.$watch("main.hideSearchForm", function(currentValue) {
                     if (currentValue) {
                         hideLandingPage();
                     } else {
                         showLandingPage();
+                    }
+                });
+                scope.$watch("main.formData.sourcemodulename", function(currentValue) {
+                    if ('sourcemodulename' in scope.main.formData) {
+                        scope.sourceModuleSelected = currentValue.replace(/"/g, '');
+                    }
+                });
+                scope.$watch("main.formData.targetmodulename", function(currentValue) {
+                    if ('targetmodulename' in scope.main.formData) {
+                        scope.targetModuleSelected = currentValue.replace(/"/g, '');
                     }
                 });
             }

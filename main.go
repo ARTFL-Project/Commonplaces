@@ -23,6 +23,8 @@ type (
 		Debug        bool                              `json:"debug"`
 		Modules      []string                          `json:"modules"`
 		LatinAuthors []string                          `json:"latinAuthors"`
+		TopAuthors   []string                          `json:"topAuthors"`
+		TopTitles    []string                          `json:"topTitles"`
 	}
 
 	resultObject struct {
@@ -95,7 +97,7 @@ type (
 
 var webConfig = databaseConfig()
 
-var db, err = sql.Open("mysql", "***REMOVED***@/digging?max_statement_time=50")
+var db, err = sql.Open("mysql", "***REMOVED***:***REMOVED***@/digging?max_statement_time=50")
 
 var idCountMap = map[string]string{
 	"passageIDCount": "passageidentcount",
@@ -393,9 +395,9 @@ func fullTextQuery(c *gin.Context) {
 		rows, err = db.Query(query)
 	}
 	if err != nil {
-		var emptyResults []fullTextResultObject
+		// var emptyResults []fullTextResultObject
 		c.Error(err)
-		c.JSON(200, fullTextResults{emptyResults})
+		// c.JSON(200, fullTextResults{emptyResults})
 	}
 
 	defer rows.Close()
@@ -423,9 +425,9 @@ func fullTextQuery(c *gin.Context) {
 		var authorIdent string
 		err := rows.Scan(&author, &title, &date, &leftContext, &matchContext, &rightContext, &philoID, &databaseName, &targetAuthor, &targetTitle, &targetDate, &targetLeftContext, &targetMatchContext, &targetRightContext, &targetphiloID, &targetmodulename, &passageID, &passageIDCount, &authorIdent)
 		if err != nil {
-			var emptyResults []fullTextResultObject
+			// var emptyResults []fullTextResultObject
 			c.Error(err)
-			c.JSON(200, fullTextResults{emptyResults})
+			// c.JSON(200, fullTextResults{emptyResults})
 		}
 		author = strings.Replace(author, "<fs/>", "; ", -1)
 		title = strings.Replace(title, "<fs/>", "; ", -1)
@@ -438,8 +440,9 @@ func fullTextQuery(c *gin.Context) {
 	if len(results.FullTextList) == 0 {
 		var emptyResults []fullTextResultObject
 		c.JSON(200, fullTextResults{emptyResults})
+	} else {
+		c.JSON(200, results)
 	}
-	c.JSON(200, results)
 }
 
 func fulltextCount(c *gin.Context) {
@@ -519,7 +522,7 @@ func index(c *gin.Context) {
 		dbname = "ecco"
 	}
 	c.HTML(http.StatusOK, "index.html", gin.H{
-		"title":      "Main website",
+		"title":      "Commonplace Cultures",
 		"dbSelected": dbname,
 	})
 }

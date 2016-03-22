@@ -42,16 +42,26 @@
                                 </div>
                                 <div class="col-xs-12 col-sm-9" style="position: relative;" ng-if="main.dbActive === 'latin' || main.dbActive === 'ecco'">
                                     <div class="input-group">
-                                      <input type="text" class="form-control" ng-model="main.formData.sourceauthor" placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.sourceauthor }}" aria-describedby="basic-addon2">
-                                      <span class="input-group-btn">
-                                            <button class="btn btn-primary" type="button" style="font-size: 11px;padding: 5px 2px; line-height:100%" ng-click="listAuthors()">
+                                        <input type="text" class="form-control" ng-model="main.formData.sourceauthor" placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.sourceauthor }}" aria-describedby="basic-addon2">
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-default" type="button" style="font-size: 11px;padding: 5px 2px; line-height:100%" ng-click="listTopAuthors()">
+                                                Top 250<br>Authors*
+                                            </button>
+                                            <button class="btn btn-default" type="button" style="font-size: 11px;padding: 5px 2px; line-height:100%" ng-click="listAuthors()">
                                                 List Latin<br>authors
                                             </button>
                                         </span>
                                     </div>
+                                    <div class="panel panel-default latin-list" ng-if="showTopAuthorList">
+                                        <ul class="list-group">
+                                            <li class="list-group-item row" style="margin-left:0;margin-right:0" ng-repeat="author in topAuthors">
+                                                <a href="" ng-click="fillForm('sourceauthor', author)">{{ ::author }}</a>
+                                            </li>
+                                        </ul>
+                                    </div>
                                     <div class="panel panel-default latin-list" ng-if="showLatinAuthorList">
                                         <ul class="list-group">
-                                            <li class="list-group-item row"  style="margin-left:0;margin-right:0" ng-repeat="author in latinAuthors">
+                                            <li class="list-group-item row" style="margin-left:0;margin-right:0" ng-repeat="author in latinAuthors">
                                                 <a href="" ng-click="fillForm('sourceauthor', author)">{{ ::author }}</a>
                                             </li>
                                         </ul>
@@ -65,7 +75,21 @@
                                     Title:
                                 </div>
                                 <div class="col-xs-12 col-sm-9">
-                                    <input class="form-control" ng-model="main.formData.sourcetitle" placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.sourcetitle }}" type="text">
+                                    <div class="input-group">
+                                        <input class="form-control" ng-model="main.formData.sourcetitle" placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.sourcetitle }}" type="text">
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-default" type="button" style="font-size: 11px;padding: 5px 2px; line-height:100%" ng-click="listTopTitles()">
+                                                Top 250<br>Titles*
+                                            </button>
+                                        </span>
+                                    </div>
+                                    <div class="panel panel-default latin-list" ng-if="showTopTitleList">
+                                        <ul class="list-group">
+                                            <li class="list-group-item row" style="margin-left:0;margin-right:0" ng-repeat="title in topTitles">
+                                                <a href="" ng-click="fillForm('sourcetitle', title)">{{ ::title }}</a>
+                                            </li>
+                                        </ul>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -75,19 +99,13 @@
                                     Module Name:
                                 </div>
                                 <div class="col-xs-12 col-sm-9">
-                                    <div class="input-group">
-                                        <input class="form-control" ng-model="main.formData.sourcemodulename" placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.sourcemodulename }}" type="text">
-                                        <span class="input-group-btn">
-                                              <button class="btn btn-primary" type="button" style="font-size: 11px;padding: 5px 2px; line-height:100%" ng-click="listSourceModules()">
-                                                  List<br>modules
-                                              </button>
-                                        </span>
-                                    </div>
-                                    <div class="panel panel-default latin-list" ng-if="showSourceModuleList">
-                                        <ul class="list-group">
-                                            <li class="list-group-item row" style="margin-left:0;margin-right:0" ng-repeat="obj in main.webConfig.modules">
-                                                <a href="" ng-click="fillForm('sourcemodulename', obj)">{{ ::obj }}</a>
-                                            </li>
+                                    <div class="dropdown">
+                                        <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu3" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                            {{ sourceModuleSelected }}
+                                            <span class="caret"></span>
+                                        </button>
+                                        <ul class="dropdown-menu" aria-labelledby="dropdownMenu3">
+                                            <li ng-repeat="obj in moduleNames"><a href="#" ng-click="selectModule('sourcemodulename', obj)">{{ ::obj }}</a></li>
                                         </ul>
                                     </div>
                                 </div>
@@ -113,6 +131,7 @@
                                 </div>
                             </div>
                         </div>
+                        <span style="text-align:initial">*by frequency of first use</span>
                     </div>
                 </div>
                 <div class="col-xs-12 col-sm-6">
@@ -156,19 +175,13 @@
                                     Module Name:
                                 </div>
                                 <div class="col-xs-12 col-sm-9">
-                                    <div class="input-group">
-                                        <input class="form-control" ng-model="main.formData.targetmodulename" placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.targetmodulename }}" type="text">
-                                        <span class="input-group-btn">
-                                              <button class="btn btn-primary" type="button" style="font-size: 11px;padding: 5px 2px; line-height:100%" ng-click="listTargetModules()">
-                                                  List<br>modules
-                                              </button>
-                                        </span>
-                                    </div>
-                                    <div class="panel panel-default latin-list" ng-if="showTargetModuleList">
-                                        <ul class="list-group">
-                                            <li class="list-group-item row"  style="margin-left:0;margin-right:0" ng-repeat="obj in main.webConfig.modules">
-                                                <a href="" ng-click="fillForm('targetmodulename', obj)">{{ ::obj }}</a>
-                                            </li>
+                                    <div class="dropdown">
+                                        <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu4" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                            {{ targetModuleSelected }}
+                                            <span class="caret"></span>
+                                        </button>
+                                        <ul class="dropdown-menu" aria-labelledby="dropdownMenu4">
+                                            <li ng-repeat="obj in moduleNames"><a href="#" ng-click="selectModule('targetmodulename', obj)">{{ ::obj }}</a></li>
                                         </ul>
                                     </div>
                                 </div>
@@ -220,15 +233,15 @@
                         <div style="display: inline; margin-left: 10px;" ng-if="main.dbActive !== 'latin'">
                             Bible Filter:
                             <div class="dropup" style="display: inline">
-                              <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                                {{ bibleFilter }}
-                                <span class="caret"></span>
-                              </button>
-                              <ul class="dropdown-menu" aria-labelledby="dropdownMenu2">
-                                <li><a href="#" ng-click="bibleFiltering(0)">Filter out Bible sources</a></li>
-                                <li><a href="#" ng-click="bibleFiltering(1)">Filter out non-Bible sources</a></li>
-                                <li><a href="#" ng-click="bibleFiltering(2)">No filter</a></li>
-                              </ul>
+                                <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                    {{ bibleFilter }}
+                                    <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="dropdownMenu2">
+                                    <li><a href="#" ng-click="bibleFiltering(0)">Filter out Bible sources</a></li>
+                                    <li><a href="#" ng-click="bibleFiltering(1)">Filter out non-Bible sources</a></li>
+                                    <li><a href="#" ng-click="bibleFiltering(2)">No filter</a></li>
+                                </ul>
                             </div>
                         </div>
                         <span style="margin-left: 10px;" ng-show="main.webConfig.debug">
@@ -238,8 +251,10 @@
                 </div>
                 <div class="col-xs-12 col-sm-2">
                     <div class="search-field" ng-if="!hideForm">
-                        <button type="button" class="btn btn-primary" ng-click="clear()">Clear</button>
-                        <button class="btn btn-primary pull-right" type="submit">Search</button>
+                        <div class="btn-group pull-right" role="group" aria-label="...">
+                            <button type="button" class="btn btn-default" ng-click="clear()">Clear</button>
+                            <button class="btn btn-primary" type="submit">Search</button>
+                        </div>
                     </div>
                 </div>
             </div>

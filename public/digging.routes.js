@@ -7,12 +7,6 @@
 
 	function DiggingAppConfig($routeProvider, $locationProvider) {
 		$routeProvider.
-            when('/', {
-                controller: 'MainController'
-            }).
-            when('/nav/:dbname', {
-                controller: 'MainController'
-            }).
             when('/nav/:dbname/passage/:passageID', {
                 templateUrl: 'components/passageResults/passageResults.html',
 				controller: 'PassageController',
@@ -25,10 +19,7 @@
 			}).
             when('/nav/:dbname/commonplace/search?:queryArgs', {
                 templateUrl: 'components/commonplaceSearch/commonplaceSearch.html'
-            }).
-			otherwise({
-			  redirectTo: '/'
-			});
+            });
 		$locationProvider.html5Mode({
 			enabled: true
 		});
