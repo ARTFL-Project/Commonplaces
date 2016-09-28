@@ -97,7 +97,7 @@ type (
 
 var webConfig = databaseConfig()
 
-var db, err = sql.Open("mysql", "***REMOVED***:***REMOVED***@/digging?max_statement_time=50")
+var db, err = sql.Open("mysql", "**USER**:**PASSWD**@/digging?max_statement_time=50")
 
 var idCountMap = map[string]string{
 	"passageIDCount": "passageidentcount",
