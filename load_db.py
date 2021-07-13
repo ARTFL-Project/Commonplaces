@@ -1,81 +1,53 @@
 """Load Ecco into PG"""
 
+from io import StringIO
+from tqdm import tqdm
 import psycopg2
 from psycopg2.extras import execute_values
 
 if __name__ == "__main__":
-    with psycopg2.connect(database="commonplaces", user="digging_write", password="martini") as conn:
+    with psycopg2.connect(database="commonplaces", user="digging_write", password="martini", host="localhost") as conn:
         cursor = conn.cursor()
-        cursor.execute("DROP IF EXIST TABLE ecco")
+        cursor.execute("DROP TABLE IF EXISTS ecco")
         cursor.execute(
-            """create table ecco (sourceobjectid int, sourceauthor text, sourcetitle text, sourcedate smallint, sourcematchsize smallint, sourceleftcontext text, sourcematchcontext text, sourcerightcontext text, sourcephiloid text, sourcemodulename text, targetobjectid int, targetauthor text, targettitle text, targetdate smallint, targetmatchsize smallint, targetleftcontext text, targetmatchcontext text, targetrightcontext text, targetphiloid text, targetmodulename text, passageident int, passageidentcount int, authorident smallint"""
+            """create table ecco (sourceobjectid int, sourceauthor text, sourcetitle text, sourcedate smallint, sourcematchsize smallint, sourceleftcontext text, sourcematchcontext text, sourcerightcontext text, sourcephiloid text, sourcemodulename text, targetobjectid int, targetauthor text, targettitle text, targetdate smallint, targetmatchsize smallint, targetleftcontext text, targetmatchcontext text, targetrightcontext text, targetphiloid text, targetmodulename text, passageident int, passageidentcount int, authorident smallint)"""
         )
-        with open("ecco_with_fieds") as input_file:
+        with open("ecco_with_fields.tab", encoding="latin-1") as input_file:
             input_file.readline()  # skip first line
-            rows = []
+            rows = ""
             lines = 0
-            for pos, line in enumerate(input_file):
-                (
-                    sourceobjectid,
-                    sourceauthor,
-                    sourcetitle,
-                    sourcedate,
-                    sourcematchsize,
-                    sourceleftcontext,
-                    sourcematchcontext,
-                    sourcerightcontext,
-                    sourcephiloid,
-                    sourcemodulename,
-                    targetobjectid,
-                    targetauthor,
-                    targettitle,
-                    targetdate,
-                    targetmatchsize,
-                    targetleftcontext,
-                    targetmatchcontext,
-                    targetrightcontext,
-                    targetphiloid,
-                    targetmodulename,
-                    passageident,
-                    passageidentcount,
-                    authorident,
-                ) = line.split("\t")
+            for pos, line in tqdm(enumerate(input_file), total=60442025):
+                rows += line
                 lines += 1
-                if lines == 100:
-                    execute_values(
-                        cursor,
-                        """INSERT INTO ecco (sourceobjectid, sourceauthor, sourcetitle, sourcedate, sourcematchsize, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcephiloid,sourcemodulename, targetobjectid, targetauthor, targettitle, targetdate, targetmatchsize, targetleftcontext, targetmatchcontext, targetrightcontext, targetphiloid, targetmodulename,passageident, passageidentcount, authorident) VALUES %s""",
-                        rows,
-                    )
-                    rows = []
+                if lines == 100000:
+                    file_obj = StringIO(rows)
+                    cursor.copy_from(file_obj, "ecco")
+                    rows = ""
                     lines = 0
-                if pos == 10000:
-                    break
             if lines:
-                execute_values(
-                    cursor,
-                    """INSERT INTO ecco (sourceobjectid, sourceauthor, sourcetitle, sourcedate, sourcematchsize, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcephiloid,sourcemodulename, targetobjectid, targetauthor, targettitle, targetdate, targetmatchsize, targetleftcontext, targetmatchcontext, targetrightcontext, targetphiloid, targetmodulename, passageident, passageidentcount, authorident) VALUES %s""",
-                    rows,
-                )
-                rows = []
-
+                file_obj = StringIO(rows)
+                cursor.copy_from(file_obj, "ecco")
+                rows = ""
+                lines = 0
             # Create full text search indexes
             for field in [
                 "sourceauthor",
                 "targetauthor",
-                "title",
                 "sourcetitle",
-                "targetitle",
-                "matchcontext",
+                "targettitle",
                 "sourcematchcontext",
                 "targetmatchcontext",
             ]:
+                print(f"Indexing {field} with b-tree index...", flush=True)
                 cursor.execute(f"CREATE INDEX {field}_trigrams_idx ON ecco USING GIN({field} gin_trgm_ops)")
 
             # Create exact match indexes
             for field in ["sourcemodulename", "targetmodulename"]:
+                print(f"Indexing {field} using hash index...", flush=True)
                 cursor.execute(f"CREATE INDEX {field}_hash_idx ON ecco USING HASH({field})")
 
             # Create int indexes
             for field in ["sourcedate", "targetdate"]:
+                print(f"Indexing {field} with trigram index...", flush=True)
                 cursor.execute(f"CREATE INDEX {field}_idx ON ecco USING BTREE({field})")
+            conn.commit()
