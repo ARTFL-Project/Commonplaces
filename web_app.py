@@ -6,10 +6,10 @@ import json
 import re
 
 import psycopg2
-from psycopg2.extensions import JSON
 import psycopg2.extras
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse
+from starlette.responses import JSONResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
 
@@ -76,6 +76,8 @@ def build_query(request: Request):
     for param, value in request.query_params.items():
         if param == "duplicates":
             continue  # TODO fix this this
+        if param == "facet":
+            continue
         if value != "":
             if param != "sorting":
                 # if param == "duplicates":  TODO
@@ -91,7 +93,7 @@ def build_query(request: Request):
                         continue
                 elif param in FULL_TEXT_FIELDS:
                     if value.startswith('"'):
-                        param_value = f"{param}='{value}'"
+                        param_value = f"{param}='{value[1:-1]}'"
                     else:
                         param_value = build_full_text_condition(param, value)
                     query_conditions = add_to_condition(query_conditions, param_value)
@@ -123,21 +125,16 @@ def build_full_text_condition(field: str, value: str) -> str:
         if value.startswith('"'):
             if value == '""':
                 query = f"AND {field} = ''"
-                # sql_values.append("")
             else:
                 query = f"AND {field}={value[1:-1]}"
-                # sql_values.append(value[1:-1])
         elif value.startswith("NOT "):
             split_value = " ".join(value.split()[1:]).strip()
             query = fr"AND {field} !~* '\m{split_value}\M'"
-            # sql_values.append(f"\m{split_value}\M")
         elif value.startswith("OR "):
             split_value = " ".join(value.split()[1:]).strip()
             query = fr"OR {field} !~* '\m{split_value}\M'"
-            # sql_values.append('\m{}\M'.format(split_value))
         else:
             query = fr"AND {field} ~* '\m{value}\M'"
-            # sql_values.append(fr"\m{value}\M")
         sql_query.append(query)
     return " ".join(sql_query)
 
@@ -307,7 +304,6 @@ def find_common_places(dbname: str, passage_id: int):
             unique_authors.append({"date": key, "result": value})
         unique_authors.sort(key=lambda x: x["date"])
         full_results = {"passageList": unique_titles, "titleList": unique_authors}
-        # return JSONResponse(full_results)
     return full_results
 
 
@@ -403,9 +399,9 @@ def full_text_facet(dbname: str, facet: str, request: Request):
     with psycopg2.connect(database=CONFIG["database"], user=CONFIG["user"], password=CONFIG["password"]) as conn:
         cursor = conn.cursor()
         cursor.execute(query)
-        facet_value, count = cursor.fetchone()[0]
-        results.append({"facet": facet_value, "count": count})
-    # return JSONResponse(results)
+        for row in cursor:
+            facet_value, count = row
+            results.append({"facet": facet_value, "count": count})
     return results
 
 
