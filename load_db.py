@@ -3,7 +3,6 @@
 from io import StringIO
 from tqdm import tqdm
 import psycopg2
-from psycopg2.extras import execute_values
 
 if __name__ == "__main__":
     with psycopg2.connect(database="commonplaces", user="digging_write", password="martini", host="localhost") as conn:
@@ -38,16 +37,11 @@ if __name__ == "__main__":
                 "sourcematchcontext",
                 "targetmatchcontext",
             ]:
-                print(f"Indexing {field} with b-tree index...", flush=True)
+                print(f"Indexing {field} with trigram index...", flush=True)
                 cursor.execute(f"CREATE INDEX {field}_trigrams_idx ON ecco USING GIN({field} gin_trgm_ops)")
 
-            # Create exact match indexes
-            for field in ["sourcemodulename", "targetmodulename"]:
-                print(f"Indexing {field} using hash index...", flush=True)
-                cursor.execute(f"CREATE INDEX {field}_hash_idx ON ecco USING HASH({field})")
-
-            # Create int indexes
-            for field in ["sourcedate", "targetdate"]:
-                print(f"Indexing {field} with trigram index...", flush=True)
+            # Create btree indexes
+            for field in ["sourcedate", "targetdate", "sourcemodulename", "targetmodulename", "passageident"]:
+                print(f"Indexing {field} with b-tree index...", flush=True)
                 cursor.execute(f"CREATE INDEX {field}_idx ON ecco USING BTREE({field})")
             conn.commit()

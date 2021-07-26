@@ -55,6 +55,7 @@ FULL_TEXT_FIELDS = {
     "targetmodulename",
 }
 BOOLEAN_ARGS = re.compile(r"""(NOT \w+)|(OR \w+)|(\w+)|("")""")
+TRIM_AND_OR = re.compile((r"^AND|OR"))
 
 
 def add_to_condition(query_conditions, condition):
@@ -70,10 +71,11 @@ def add_to_condition(query_conditions, condition):
 
 
 def build_query(request: Request):
-    params = []
-    values = []
+    """Build SQL query"""
     query_conditions = ""
     for param, value in request.query_params.items():
+        if param == "duplicates":
+            continue  # TODO fix this this
         if value != "":
             if param != "sorting":
                 # if param == "duplicates":  TODO
@@ -89,7 +91,7 @@ def build_query(request: Request):
                         continue
                 elif param in FULL_TEXT_FIELDS:
                     if value.startswith('"'):
-                        param_value = f"{param}={value}"
+                        param_value = f"{param}='{value}'"
                     else:
                         param_value = build_full_text_condition(param, value)
                     query_conditions = add_to_condition(query_conditions, param_value)
@@ -101,13 +103,15 @@ def build_query(request: Request):
                     else:
                         param_value = f"{param}={value}"
                     query_conditions = add_to_condition(query_conditions, param_value)
+    query_conditions = TRIM_AND_OR.sub("", query_conditions)  # remove leading AND/OR
+    print(query_conditions)
     return query_conditions
 
 
 def build_full_text_condition(field: str, value: str) -> str:
     """Build full text SQL query string"""
     sql_query = []
-    for and_query, not_query, or_query, regular_query, empty_query in BOOLEAN_ARGS.findall(value):
+    for not_query, or_query, regular_query, empty_query in BOOLEAN_ARGS.findall(value):
         if not_query != "":
             value = not_query
         elif or_query != "":
@@ -118,21 +122,21 @@ def build_full_text_condition(field: str, value: str) -> str:
             value = regular_query
         if value.startswith('"'):
             if value == '""':
-                query = f"{field} = ''"
+                query = f"AND {field} = ''"
                 # sql_values.append("")
             else:
-                query = f"{field}={value[1:-1]}"
+                query = f"AND {field}={value[1:-1]}"
                 # sql_values.append(value[1:-1])
         elif value.startswith("NOT "):
             split_value = " ".join(value.split()[1:]).strip()
-            query = fr"{field} !~* \m{split_value}\M"
+            query = fr"AND {field} !~* '\m{split_value}\M'"
             # sql_values.append(f"\m{split_value}\M")
         elif value.startswith("OR "):
             split_value = " ".join(value.split()[1:]).strip()
-            query = fr"{field} !~* \m{split_value}\M"
+            query = fr"OR {field} !~* '\m{split_value}\M'"
             # sql_values.append('\m{}\M'.format(split_value))
         else:
-            query = fr"{field} ~* \m{value}\M"
+            query = fr"AND {field} ~* '\m{value}\M'"
             # sql_values.append(fr"\m{value}\M")
         sql_query.append(query)
     return " ".join(sql_query)
@@ -160,17 +164,19 @@ def find_common_places(dbname: str, passage_id: int):
     """Retrieve commonplaces"""
     filtered_authors = {}
     filtered_titles = {}
-    with psycopg2.connect(database=CONFIG["database"], user=CONFIG["user"], password=CONFIG["password"]) as conn:
+    with psycopg2.connect(
+        database=CONFIG["database"], user=CONFIG["user"], password=CONFIG["password"], host="localhost"
+    ) as conn:
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         cursor.execute(
             f"SELECT sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcephiloid, sourcemodulename, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetphiloid, targetmodulename, authorident FROM {dbname} WHERE passageident=%s",
-            passage_id,
+            (passage_id,),
         )
         for row in cursor:
             source_author = row["sourceauthor"].replace("<fs/>", "; ")
             source_title = row["sourcetitle"].replace("<fs/>", "; ")
             target_author = row["targetauthor"].replace("<fs/>", "; ")
-            target_title = row["targetitle"].replace("<fs/>", "; ")
+            target_title = row["targettitle"].replace("<fs/>", "; ")
             if source_author not in filtered_authors:
                 filtered_authors[source_author] = {
                     "author": source_author,
@@ -301,11 +307,19 @@ def find_common_places(dbname: str, passage_id: int):
             unique_authors.append({"date": key, "result": value})
         unique_authors.sort(key=lambda x: x["date"])
         full_results = {"passageList": unique_titles, "titleList": unique_authors}
-        return JSONResponse(full_results)
+        # return JSONResponse(full_results)
+    return full_results
 
 
 @app.get("/api/{dbname}/fulltext")
-def full_text_query(dbname: str, passageID: int, offset: Optional[int], sorting: int, request: Request):
+def full_text_query(
+    dbname: str,
+    sorting: int,
+    duplicates: str,
+    request: Request,
+    passageID: Optional[int] = None,
+    offset: Optional[int] = None,
+):
     """Full text query"""
     # TODO: replicate duplicate IDS functionality. Can't recall what this does...
     # duplicate_ids =
@@ -323,22 +337,24 @@ def full_text_query(dbname: str, passageID: int, offset: Optional[int], sorting:
         else:
             query += f" ORDER BY {sorting} LIMIT {offset}, 40"
     results = {"fullList": []}
-    with psycopg2.connect(database=CONFIG["database"], user=CONFIG["user"], password=CONFIG["password"]) as conn:
+    with psycopg2.connect(
+        database=CONFIG["database"], user=CONFIG["user"], password=CONFIG["password"], host="localhost"
+    ) as conn:
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         cursor.execute(query)
         for row in cursor:
             source_author = row["sourceauthor"].replace("<fs/>", "; ")
             source_title = row["sourcetitle"].replace("<fs/>", "; ")
             target_author = row["targetauthor"].replace("<fs/>", "; ")
-            target_title = row["targetitle"].replace("<fs/>", "; ")
+            target_title = row["targettitle"].replace("<fs/>", "; ")
             results["fullList"].append(
                 {
                     "sourceAuthor": source_author,
                     "sourceTitle": source_title,
                     "sourceDate": row["sourcedate"],
-                    "sourceleftContext": row["sourceleftcontext"],
-                    "sourcerightContext": row["sourcerightcontext"],
-                    "sourcematchContext": row["sourcematchcontext"],
+                    "sourceLeftContext": row["sourceleftcontext"],
+                    "sourceRightContext": row["sourcerightcontext"],
+                    "sourceMatchContext": row["sourcematchcontext"],
                     "philoID": row["sourcephiloid"],
                     "databaseName": row["sourcemodulename"],
                     "targetAuthor": target_author,
@@ -349,18 +365,18 @@ def full_text_query(dbname: str, passageID: int, offset: Optional[int], sorting:
                     "targetMatchContext": row["targetmatchcontext"],
                     "targetPhiloID": row["targetphiloid"],
                     "targetmodulename": row["targetmodulename"],
-                    "passageID": row["passage_id"],
+                    "passageID": row["passageident"],
                     "authorident": row["authorident"],
                     "passageIDCount": row["passageidentcount"],
                     "authorident": row["authorident"],
                 }
             )
     if len(results["fullList"]) == 0:
-        return JSONResponse([])
-    return JSONResponse(results)
+        return []
+    return results
 
 
-@app.get("api/{dbname}/fulltextcount")
+@app.get("/api/{dbname}/fulltextcount")
 def full_text_count(dbname: str, request: Request):
     """Get full text count"""
     # TODO: duplicate ID functionality
@@ -370,7 +386,8 @@ def full_text_count(dbname: str, request: Request):
         cursor = conn.cursor()
         cursor.execute(query)
         total_count = cursor.fetchone()[0]
-    return JSONResponse({"totalCount": total_count})
+    # return JSONResponse({"totalCount": total_count})
+    return {"totalCount": total_count}
 
 
 @app.get("/api/{dbname}/fulltextfacet")
@@ -388,7 +405,8 @@ def full_text_facet(dbname: str, facet: str, request: Request):
         cursor.execute(query)
         facet_value, count = cursor.fetchone()[0]
         results.append({"facet": facet_value, "count": count})
-    return JSONResponse(results)
+    # return JSONResponse(results)
+    return results
 
 
 @app.get("/config/config.json")
