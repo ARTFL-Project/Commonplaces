@@ -1,20 +1,17 @@
 "Web API for CommonplacesCultures"
 
 
-from typing import Optional, List
 import json
 import re
+from typing import Optional
 
 import psycopg2
 import psycopg2.extras
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
-from starlette.responses import JSONResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
-
-# from starlette.responses import Response
-
+from starlette.responses import JSONResponse
 
 # FastAPI application server
 app = FastAPI()
@@ -113,7 +110,7 @@ def build_query(request: Request):
 def build_full_text_condition(field: str, value: str) -> str:
     """Build full text SQL query string"""
     sql_query = []
-    for not_query, or_query, regular_query, empty_query in BOOLEAN_ARGS.findall(value):
+    for not_query, or_query, regular_query, _ in BOOLEAN_ARGS.findall(value):
         if not_query != "":
             value = not_query
         elif or_query != "":
@@ -311,9 +308,7 @@ def find_common_places(dbname: str, passage_id: int):
 def full_text_query(
     dbname: str,
     sorting: int,
-    duplicates: str,
     request: Request,
-    passageID: Optional[int] = None,
     offset: Optional[int] = None,
 ):
     """Full text query"""
@@ -364,7 +359,6 @@ def full_text_query(
                     "passageID": row["passageident"],
                     "authorident": row["authorident"],
                     "passageIDCount": row["passageidentcount"],
-                    "authorident": row["authorident"],
                 }
             )
     if len(results["fullList"]) == 0:
@@ -382,7 +376,6 @@ def full_text_count(dbname: str, request: Request):
         cursor = conn.cursor()
         cursor.execute(query)
         total_count = cursor.fetchone()[0]
-    # return JSONResponse({"totalCount": total_count})
     return {"totalCount": total_count}
 
 
