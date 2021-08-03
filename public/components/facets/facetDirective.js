@@ -1,4 +1,4 @@
-(function() {
+(function () {
     'use strict';
     angular
         .module('DiggingApp')
@@ -7,12 +7,12 @@
     function facetSearch($location, $http, $log, webConfig, URL, $routeParams) {
         return {
             templateUrl: "components/facets/facetSearch.html",
-            link: function(scope) {
+            link: function (scope) {
                 var formData = angular.copy($location.search());
                 scope.showfacet = false;
                 scope.selectedFacet = "";
                 scope.facetLoading = false;
-                scope.getFacet = function(facet) {
+                scope.getFacet = function (facet) {
                     scope.facetLoading = true;
                     formData.facet = facet;
                     scope.selectedFacet = facet;
@@ -25,18 +25,18 @@
                     }
                     urlString += URL.objectToString(formData);
                     scope.showFacetSelection = false;
-                    $http.get(urlString).then(function(response) {
+                    $http.get(urlString).then(function (response) {
                         scope.facetData = response.data;
                         scope.showfacet = true;
                         scope.facetLoading = false;
                     });
                 }
-                scope.closeFacets = function() {
+                scope.closeFacets = function () {
                     scope.showfacet = false;
                     scope.showFacetSelection = true;
                 }
                 scope.showFacetSelection = true;
-                scope.displayFacetSelection = function() {
+                scope.displayFacetSelection = function () {
                     scope.showFacetSelection = true;
                 }
                 scope.hideFacets = function () {
@@ -44,7 +44,7 @@
                     angular.element('#facet-container').hide();
                     scope.fullText.facetVisible = false;
                 }
-                scope.goToResult = function(queryType, facet) {
+                scope.goToResult = function (queryType, facet) {
                     var currentFormData = angular.copy($location.search());
                     currentFormData[scope.selectedFacet] = '"' + facet + '"';
                     var urlString = URL.objectToString(currentFormData);
