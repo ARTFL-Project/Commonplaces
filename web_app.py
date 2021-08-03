@@ -324,8 +324,6 @@ def full_text_query(
     query = f"SELECT sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcephiloid, sourcemodulename, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetphiloid, targetmodulename, passageident, passageidentcount, authorident FROM {dbname} WHERE "
     sort_fields = ", ".join(SORT_KEY_MAP[sorting])
     query_conditions, query_values = build_query((request))
-    print(query_conditions)
-    print(query_values)
     query += query_conditions
     if offset is None:
         if sorting == -1:
@@ -342,7 +340,6 @@ def full_text_query(
         database=CONFIG["database"], user=CONFIG["user"], password=CONFIG["password"], host="localhost"
     ) as conn:
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        print(cursor.mogrify(query, query_values))
         cursor.execute(query, query_values)
         for row in cursor:
             source_author = row["sourceauthor"].replace("<fs/>", "; ")
