@@ -58,7 +58,7 @@ TRIM_AND_OR = re.compile((r"^AND|OR"))
 def add_to_condition(query_conditions, condition):
     """Update query condition"""
     if query_conditions:
-        if condition.startswith("OR"):
+        if condition.startswith("OR") or condition.startswith("AND"):
             query_conditions += f" {condition}"
         else:
             query_conditions += f" AND {condition}"
@@ -103,7 +103,6 @@ def build_query(request: Request):
                         param_value = f"{param}={value}"
                     query_conditions = add_to_condition(query_conditions, param_value)
     query_conditions = TRIM_AND_OR.sub("", query_conditions)  # remove leading AND/OR
-    print(query_conditions)
     return query_conditions
 
 

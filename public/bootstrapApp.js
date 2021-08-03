@@ -1,4 +1,4 @@
-(function() {
+(function () {
     "use strict";
 
     angular
@@ -10,17 +10,17 @@
         var initInjector = angular.injector(["ng"]);
         var $http = initInjector.get("$http");
 
-        return $http.get("config/config.json").then(function(response) {
+        return $http.get("/commonplaces/config/config.json").then(function (response) {
             angular
                 .module('DiggingApp')
                 .constant("webConfig", response.data);
-        }, function(errorResponse) {
+        }, function (errorResponse) {
             // Handle error case
         });
     }
 
     function bootstrapApplication() {
-        angular.element(document).ready(function() {
+        angular.element(document).ready(function () {
             angular.bootstrap(document, ['DiggingApp']);
         });
     }

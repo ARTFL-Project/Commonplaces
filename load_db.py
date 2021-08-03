@@ -41,7 +41,19 @@ if __name__ == "__main__":
                 cursor.execute(f"CREATE INDEX {field}_trigrams_idx ON ecco USING GIN({field} gin_trgm_ops)")
 
             # Create btree indexes
-            for field in ["sourcedate", "targetdate", "sourcemodulename", "targetmodulename", "passageident"]:
+            for field in [
+                "sourceauthor",
+                "targetauthor",
+                "sourcedate",
+                "targetdate",
+                "sourcemodulename",
+                "targetmodulename",
+                "passageident",
+            ]:
                 print(f"Indexing {field} with b-tree index...", flush=True)
                 cursor.execute(f"CREATE INDEX {field}_idx ON ecco USING BTREE({field})")
+
+            # We use a hash index for titles since some fields are too long for a btree index
+            cursor.execute("create index sourcetitle_idx on ecco using hash(sourcetitle)")
+            cursor.execute("create index targettitle_idx on ecco using hash(targettitle)")
             conn.commit()

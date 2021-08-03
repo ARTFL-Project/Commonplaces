@@ -1,18 +1,22 @@
 <div class="row clearfix">
     <div style="position: relative">
-        <button type="button" class="btn btn-primary" style="position: absolute; right: 15px; top: 15px; z-index:50;" ng-if="!fullText.facetVisible" ng-click="makeFacetsVisible()">
+        <button type="button" class="btn btn-primary" style="position: absolute; right: 15px; top: 15px; z-index:50;"
+            ng-if="!fullText.facetVisible" ng-click="makeFacetsVisible()">
             Show Facet Selection
         </button>
     </div>
-    <div id="full-text-results" class="col-xs-12 col-sm-7 col-md-9" ui-scrollpoint ui-scrollpoint-action="main.reportScroll">
+    <div id="full-text-results" class="col-xs-12 col-sm-7 col-md-9" ui-scrollpoint
+        ui-scrollpoint-action="main.reportScroll">
         <spinner show="{{ loading }}"></spinner>
         <h4 ng-if="!loading">
             Your query returned
             <span class="dots" ng-if="waitingForCount"><span>.</span><span>.</span><span>.</span></span>
             {{ totalCount }} shared passages
         </h4>
-        <div infinite-scroll="addMoreResults()" infinite-scroll-distance="1" infinite-scroll-disabled="loadingData" infinite-scroll-immediate-check="false">
-            <div class="panel panel-default result alignment" ng-repeat="result in fullTextResults.fullList | limitTo: displayLimit track by $index">
+        <div infinite-scroll="addMoreResults()" infinite-scroll-distance="1" infinite-scroll-disabled="loadingData"
+            infinite-scroll-immediate-check="false">
+            <div class="panel panel-default result alignment"
+                ng-repeat="result in fullTextResults.fullList | limitTo: displayLimit track by $index">
                 <h5 class="result-number">{{ ::$index + 1}}</h5>
                 <div ng-if="result.authorident == 1" style="margin-top: 3px; margin-bottom: 5px;">
                     <span class="info"><img src="img/lightbulb.png" alt="" height="25" width="25" /></span>&nbsp;
@@ -51,7 +55,7 @@
                     </div>
                 </div>
                 <div ng-if="result.passageIDCount > 1">
-                    <a href="/nav/{{ ::dbname }}/passage/{{ ::result.passageID }}">
+                    <a href="/commonplaces/nav/{{ ::dbname }}/passage/{{ ::result.passageID }}">
                         View similar passages in timeline
                         <span ng-if="main.webConfig.debug">
                             ({{ result.passageIDCount }} PhiloLine matching pairs)
