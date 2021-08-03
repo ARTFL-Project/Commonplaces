@@ -17,11 +17,11 @@
                     formData.facet = facet;
                     scope.selectedFacet = facet;
                     if (scope.main.queryType === "sharedPassages") {
-                        var urlString = "/commonplaces/api/" + scope.main.dbActive + "/fulltextfacet?"
+                        var urlString = "/api/" + scope.main.dbActive + "/fulltextfacet?"
                     } else if (scope.main.queryType === "commonplaces") {
-                        var urlString = "/commonplaces/api/" + scope.main.dbActive + "/commonplacefacet?"
+                        var urlString = "/api/" + scope.main.dbActive + "/commonplacefacet?"
                     } else {
-                        var urlString = "/commonplaces/api/" + scope.main.dbActive + "/topicFacet/" + $routeParams.topicID + "?"
+                        var urlString = "/api/" + scope.main.dbActive + "/topicFacet/" + $routeParams.topicID + "?"
                     }
                     urlString += URL.objectToString(formData);
                     scope.showFacetSelection = false;
