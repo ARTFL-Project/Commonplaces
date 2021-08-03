@@ -4,6 +4,7 @@
 import json
 import re
 from typing import Optional
+from collections import namedtuple
 
 import psycopg2
 import psycopg2.extras
@@ -51,88 +52,95 @@ FULL_TEXT_FIELDS = {
     "sourcemodulename",
     "targetmodulename",
 }
-BOOLEAN_ARGS = re.compile(r"""(NOT \w+)|(OR \w+)|(\w+)|("")""")
-TRIM_AND_OR = re.compile((r"^AND|OR"))
+BOOLEAN_ARGS = re.compile(r"""(NOT \w+)|("[^"]+")|(\w+)""")
+QUERY_CONDITION = namedtuple("QueryConditions", ["joiner", "field", "operator", "value"])
 
 
-def add_to_condition(query_conditions, condition):
+def add_to_condition(query_conditions, joiner, field, operator):
     """Update query condition"""
-    if query_conditions:
-        if condition.startswith("OR") or condition.startswith("AND"):
-            query_conditions += f" {condition}"
-        else:
-            query_conditions += f" AND {condition}"
+    if not query_conditions:
+        query_conditions = f"{field} {operator} %s"
+    elif joiner in ("AND", "OR"):
+        query_conditions += f" {joiner} {field} {operator} %s"
     else:
-        query_conditions = condition
+        query_conditions += f" AND {field} {operator} %s"
     return query_conditions
 
 
 def build_query(request: Request):
     """Build SQL query"""
     query_conditions = ""
+    query_values = []
     for param, value in request.query_params.items():
-        if param == "duplicates":
-            continue  # TODO fix this this
-        if param == "facet":
-            continue
+        if param in ("duplicates", "facet", "offset"):
+            continue  # TODO fix duplicates?
         if value != "":
             if param != "sorting":
                 # if param == "duplicates":  TODO
                 #     param_value =
                 if param == "bible":
                     if value == "ignore":
-                        param_value = "authorident!=1"
-                        query_conditions = add_to_condition(query_conditions, param_value)
+                        query_conditions = add_to_condition(
+                            query_conditions, joiner="", field="authorident", operator="!="
+                        )
+                        query_values.append(value)
                     elif value == "only":
-                        param_value = "authorident=1"
-                        query_conditions = add_to_condition(query_conditions, param_value)
+                        query_conditions = add_to_condition(
+                            query_conditions,
+                            joiner="",
+                            field="authorident",
+                            operator="=",
+                        )
+                        query_values.append(value)
                     else:
                         continue
                 elif param in FULL_TEXT_FIELDS:
-                    if value.startswith('"'):
-                        param_value = f"{param}='{value[1:-1]}'"
+                    if "OR" in value:
+                        if query_conditions:
+                            query_conditions += " AND"
+                        query_conditions += f" ({param} ~* %s"
+                        values = value.split(" OR ")
+                        first_value = values.pop()
+                        query_values.append(fr"\m{first_value}\M")
+                        for query_value in values:
+                            query_conditions += f" OR {param} ~* %s"
+                            query_values.append(fr"\m{query_value}\M")
+                        query_conditions += ")"
                     else:
-                        param_value = build_full_text_condition(param, value)
-                    query_conditions = add_to_condition(query_conditions, param_value)
+                        for not_query, quoted_query, regular_query in BOOLEAN_ARGS.findall(value):
+                            if quoted_query:
+                                if query_conditions:
+                                    query_conditions += " AND"
+                                query_conditions += f" {param}=%s"
+                                query_values.append(quoted_query[1:-1])
+                            else:
+                                if not_query != "":
+                                    query_value = not_query
+                                else:
+                                    query_value = regular_query
+                                if query_value.startswith("NOT "):
+                                    if query_conditions:
+                                        query_conditions += " AND"
+                                    query_conditions += f" {param} !~* %s"
+                                    split_value = " ".join(query_value.split()[1:]).strip()
+                                    query_values.append(fr"\m{split_value}\M")
+                                else:
+                                    if query_conditions:
+                                        query_conditions += " AND"
+                                    query_conditions += f" {param} ~* %s"
+                                    query_values.append(fr"\m{query_value}\M")
                 else:
                     value = value.replace('"', "")
                     if "-" in value:
-                        date_range = value.split("-")
-                        param_value = f"{param} BETWEEN {date_range[0]} AND {date_range[1]}"
+                        date_range = [int(i) for i in value.split("-")]
+                        if query_conditions:
+                            query_conditions += " AND "
+                        query_conditions += f" {param} BETWEEN %s AND %s"
+                        query_values.extend(date_range)
                     else:
-                        param_value = f"{param}={value}"
-                    query_conditions = add_to_condition(query_conditions, param_value)
-    query_conditions = TRIM_AND_OR.sub("", query_conditions)  # remove leading AND/OR
-    return query_conditions
-
-
-def build_full_text_condition(field: str, value: str) -> str:
-    """Build full text SQL query string"""
-    sql_query = []
-    for not_query, or_query, regular_query, _ in BOOLEAN_ARGS.findall(value):
-        if not_query != "":
-            value = not_query
-        elif or_query != "":
-            value = or_query
-        # elif empty_query != "": #TODO: evaluate if needed
-        #     value = empty_query
-        else:
-            value = regular_query
-        if value.startswith('"'):
-            if value == '""':
-                query = f"AND {field} = ''"
-            else:
-                query = f"AND {field}={value[1:-1]}"
-        elif value.startswith("NOT "):
-            split_value = " ".join(value.split()[1:]).strip()
-            query = fr"AND {field} !~* '\m{split_value}\M'"
-        elif value.startswith("OR "):
-            split_value = " ".join(value.split()[1:]).strip()
-            query = fr"OR {field} !~* '\m{split_value}\M'"
-        else:
-            query = fr"AND {field} ~* '\m{value}\M'"
-        sql_query.append(query)
-    return " ".join(sql_query)
+                        query_conditions = add_to_condition(query_conditions, joiner="", field=param, operator="=")
+                        query_values.append(value)
+    return query_conditions, tuple(query_values)
 
 
 @app.get("/")
@@ -315,7 +323,10 @@ def full_text_query(
     # duplicate_ids =
     query = f"SELECT sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcephiloid, sourcemodulename, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetphiloid, targetmodulename, passageident, passageidentcount, authorident FROM {dbname} WHERE "
     sort_fields = ", ".join(SORT_KEY_MAP[sorting])
-    query += build_query(request)
+    query_conditions, query_values = build_query((request))
+    print(query_conditions)
+    print(query_values)
+    query += query_conditions
     if offset is None:
         if sorting == -1:
             query += " LIMIT 40"
@@ -323,15 +334,16 @@ def full_text_query(
             query += f" ORDER BY {sort_fields} LIMIT 40"
     else:
         if sorting == -1:
-            query += f" LIMIT {offset}, 40"
+            query += f" OFFSET {offset} LIMIT 40"
         else:
-            query += f" ORDER BY {sorting} LIMIT {offset}, 40"
+            query += f" ORDER BY {sorting} OFFSET {offset} LIMIT 40"
     results = {"fullList": []}
     with psycopg2.connect(
         database=CONFIG["database"], user=CONFIG["user"], password=CONFIG["password"], host="localhost"
     ) as conn:
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        cursor.execute(query)
+        print(cursor.mogrify(query, query_values))
+        cursor.execute(query, query_values)
         for row in cursor:
             source_author = row["sourceauthor"].replace("<fs/>", "; ")
             source_title = row["sourcetitle"].replace("<fs/>", "; ")
@@ -370,10 +382,11 @@ def full_text_count(dbname: str, request: Request):
     """Get full text count"""
     # TODO: duplicate ID functionality
     query = f"SELECT COUNT(*) FROM {dbname} WHERE "
-    query += build_query(request)
+    query_conditions, query_values = build_query(request)
+    query += query_conditions
     with psycopg2.connect(database=CONFIG["database"], user=CONFIG["user"], password=CONFIG["password"]) as conn:
         cursor = conn.cursor()
-        cursor.execute(query)
+        cursor.execute(query, query_values)
         total_count = cursor.fetchone()[0]
     return {"totalCount": total_count}
 
@@ -382,15 +395,15 @@ def full_text_count(dbname: str, request: Request):
 def full_text_facet(dbname: str, facet: str, request: Request):
     """Get full text facet"""
     # TODO: duplicate ID functionality
-    condition = build_query(request)
+    query_conditions, query_values = build_query(request)
     if facet.endswith("date"):
-        query = f"SELECT CONCAT(decade, '-', decade + 9) AS year, COUNT(*) FROM (SELECT floor({facet} / 10) * 10 AS decade FROM {dbname} WHERE {condition}) t GROUP BY decade ORDER BY COUNT(*) DESC LIMIT 100"
+        query = f"SELECT CONCAT(decade, '-', decade + 9) AS year, COUNT(*) FROM (SELECT floor({facet} / 10) * 10 AS decade FROM {dbname} WHERE {query_conditions}) t GROUP BY decade ORDER BY COUNT(*) DESC LIMIT 100"
     else:
-        query = f"SELECT {facet}, COUNT(*) FROM {dbname} WHERE {condition} GROUP BY {facet} ORDER BY COUNT(*) DESC LIMIT 100"
+        query = f"SELECT {facet}, COUNT(*) FROM {dbname} WHERE {query_conditions} GROUP BY {facet} ORDER BY COUNT(*) DESC LIMIT 100"
     results = []
     with psycopg2.connect(database=CONFIG["database"], user=CONFIG["user"], password=CONFIG["password"]) as conn:
         cursor = conn.cursor()
-        cursor.execute(query)
+        cursor.execute(query, query_values)
         for row in cursor:
             facet_value, count = row
             results.append({"facet": facet_value, "count": count})

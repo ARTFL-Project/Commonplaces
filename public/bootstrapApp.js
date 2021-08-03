@@ -10,7 +10,7 @@
         var initInjector = angular.injector(["ng"]);
         var $http = initInjector.get("$http");
 
-        return $http.get("/commonplaces/config/config.json").then(function (response) {
+        return $http.get("config/config.json").then(function (response) {
             angular
                 .module('DiggingApp')
                 .constant("webConfig", response.data);
