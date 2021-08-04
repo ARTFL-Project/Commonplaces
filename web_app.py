@@ -83,7 +83,7 @@ def build_query(request: Request):
                         query_conditions = add_to_condition(
                             query_conditions, joiner="", field="authorident", operator="!="
                         )
-                        query_values.append(value)
+                        query_values.append(1)
                     elif value == "only":
                         query_conditions = add_to_condition(
                             query_conditions,
@@ -91,7 +91,7 @@ def build_query(request: Request):
                             field="authorident",
                             operator="=",
                         )
-                        query_values.append(value)
+                        query_values.append(1)
                     else:
                         continue
                 elif param in FULL_TEXT_FIELDS:
@@ -132,11 +132,18 @@ def build_query(request: Request):
                 else:
                     value = value.replace('"', "")
                     if "-" in value:
-                        date_range = [int(i) for i in value.split("-")]
                         if query_conditions:
                             query_conditions += " AND "
-                        query_conditions += f" {param} BETWEEN %s AND %s"
-                        query_values.extend(date_range)
+                        values = [v for v in re.split(r"(-)", value) if v]
+                        if values[0] == "-":
+                            query_conditions += f" {param} <= %s"
+                            query_values.append(int(values[1]))
+                        elif values[-1] == "-":
+                            query_conditions += f" {param} >= %s"
+                            query_values.append(int(values[0]))
+                        else:
+                            query_conditions += f" {param} BETWEEN %s AND %s"
+                            query_values.extend([int(values[0]), int(values[2])])
                     else:
                         query_conditions = add_to_condition(query_conditions, joiner="", field=param, operator="=")
                         query_values.append(value)
