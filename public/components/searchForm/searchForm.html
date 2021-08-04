@@ -1,11 +1,13 @@
 <div id="search-form">
     <form ng-submit="submit()">
         <div class="panel panel-default" id="metadata-search" style="text-align: center; position: relative;">
-            <button type="button" class="close" aria-label="Close" ng-click="hideElement($event)"><span aria-hidden="true">&times;</span></button>
+            <button type="button" class="close" aria-label="Close" ng-click="hideElement($event)"><span
+                    aria-hidden="true">&times;</span></button>
             <h4>Search all Shared Passages</h4>
             <div class="hiding-element" style="text-align: justify !important;margin-bottom: 10px;margin-top: -15px;">
                 <span class="exclamation-point">&#33;</span>
-                <a tabindex="0" role="button" data-toggle="popover" data-html="true" data-trigger="focus" title="Query Syntax" data-content="<p>For multiple-term queries, you need to separate words with the
+                <a tabindex="0" role="button" data-toggle="popover" data-html="true" data-trigger="focus"
+                    title="Query Syntax" data-content="<p>For multiple-term queries, you need to separate words with the
                 <b>OR</b> operator for an optional match.
                 <br>Example: <tt>liberty OR people</tt></p>
                 <p>
@@ -28,7 +30,9 @@
                                     Inside passages:
                                 </div>
                                 <div class="col-xs-12 col-sm-9">
-                                    <input class="form-control" ng-model="main.formData.sourcematchcontext" placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.sourcematchcontext }}" type="text">
+                                    <input class="form-control" ng-model="main.formData.sourcematchcontext"
+                                        placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.sourcematchcontext }}"
+                                        type="text">
                                 </div>
                             </div>
                         </div>
@@ -37,32 +41,46 @@
                                 <div class="col-xs-12 col-sm-3">
                                     Author:
                                 </div>
-                                <div class="col-xs-12 col-sm-9" ng-if="main.dbActive !== 'latin' && main.dbActive !== 'ecco'">
-                                    <input class="form-control" ng-model="main.formData.sourceauthor" placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.sourceauthor }}" type="text">
+                                <div class="col-xs-12 col-sm-9"
+                                    ng-if="main.dbActive !== 'latin' && main.dbActive !== 'ecco'">
+                                    <input class="form-control" ng-model="main.formData.sourceauthor"
+                                        placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.sourceauthor }}"
+                                        type="text">
                                 </div>
-                                <div class="col-xs-12 col-sm-9" style="position: relative;" ng-if="main.dbActive === 'latin' || main.dbActive === 'ecco'">
+                                <div class="col-xs-12 col-sm-9" style="position: relative;"
+                                    ng-if="main.dbActive === 'latin' || main.dbActive === 'ecco'">
                                     <div class="input-group">
-                                        <input type="text" class="form-control" ng-model="main.formData.sourceauthor" placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.sourceauthor }}" aria-describedby="basic-addon2">
+                                        <input type="text" class="form-control" ng-model="main.formData.sourceauthor"
+                                            placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.sourceauthor }}"
+                                            aria-describedby="basic-addon2">
                                         <span class="input-group-btn">
-                                            <button class="btn btn-default" type="button" style="font-size: 11px;padding: 5px 2px; line-height:100%" ng-click="listTopAuthors()">
+                                            <button class="btn btn-default" type="button"
+                                                style="font-size: 11px;padding: 5px 2px; line-height:100%"
+                                                ng-click="listTopAuthors()">
                                                 Top 250<br>Authors*
                                             </button>
-                                            <button class="btn btn-default" type="button" style="font-size: 11px;padding: 5px 2px; line-height:100%" ng-click="listAuthors()">
+                                            <button class="btn btn-default" type="button"
+                                                style="font-size: 11px;padding: 5px 2px; line-height:100%"
+                                                ng-click="listAuthors()">
                                                 List Latin<br>authors
                                             </button>
                                         </span>
                                     </div>
                                     <div class="panel panel-default latin-list" ng-if="showTopAuthorList">
                                         <ul class="list-group">
-                                            <li class="list-group-item row" style="margin-left:0;margin-right:0" ng-repeat="author in topAuthors">
-                                                <a href="" ng-click="fillForm('sourceauthor', author)">{{ ::author }}</a>
+                                            <li class="list-group-item row" style="margin-left:0;margin-right:0"
+                                                ng-repeat="author in topAuthors track by $index">
+                                                <a href="" ng-click="fillForm('sourceauthor', author)">{{ ::author
+                                                    }}</a>
                                             </li>
                                         </ul>
                                     </div>
                                     <div class="panel panel-default latin-list" ng-if="showLatinAuthorList">
                                         <ul class="list-group">
-                                            <li class="list-group-item row" style="margin-left:0;margin-right:0" ng-repeat="author in latinAuthors">
-                                                <a href="" ng-click="fillForm('sourceauthor', author)">{{ ::author }}</a>
+                                            <li class="list-group-item row" style="margin-left:0;margin-right:0"
+                                                ng-repeat="author in latinAuthors">
+                                                <a href="" ng-click="fillForm('sourceauthor', author)">{{ ::author
+                                                    }}</a>
                                             </li>
                                         </ul>
                                     </div>
@@ -76,16 +94,21 @@
                                 </div>
                                 <div class="col-xs-12 col-sm-9">
                                     <div class="input-group">
-                                        <input class="form-control" ng-model="main.formData.sourcetitle" placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.sourcetitle }}" type="text">
+                                        <input class="form-control" ng-model="main.formData.sourcetitle"
+                                            placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.sourcetitle }}"
+                                            type="text">
                                         <span class="input-group-btn">
-                                            <button class="btn btn-default" type="button" style="font-size: 11px;padding: 5px 2px; line-height:100%" ng-click="listTopTitles()">
+                                            <button class="btn btn-default" type="button"
+                                                style="font-size: 11px;padding: 5px 2px; line-height:100%"
+                                                ng-click="listTopTitles()">
                                                 Top 250<br>Titles*
                                             </button>
                                         </span>
                                     </div>
                                     <div class="panel panel-default latin-list" ng-if="showTopTitleList">
                                         <ul class="list-group">
-                                            <li class="list-group-item row" style="margin-left:0;margin-right:0" ng-repeat="title in topTitles">
+                                            <li class="list-group-item row" style="margin-left:0;margin-right:0"
+                                                ng-repeat="title in topTitles">
                                                 <a href="" ng-click="fillForm('sourcetitle', title)">{{ ::title }}</a>
                                             </li>
                                         </ul>
@@ -100,12 +123,15 @@
                                 </div>
                                 <div class="col-xs-12 col-sm-9">
                                     <div class="dropdown">
-                                        <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu3" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                        <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu3"
+                                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                                             {{ sourceModuleSelected }}
                                             <span class="caret"></span>
                                         </button>
                                         <ul class="dropdown-menu" aria-labelledby="dropdownMenu3">
-                                            <li ng-repeat="obj in moduleNames"><a href="#" ng-click="selectModule('sourcemodulename', obj)">{{ ::obj }}</a></li>
+                                            <li ng-repeat="obj in moduleNames"><a href="#"
+                                                    ng-click="selectModule('sourcemodulename', obj)">{{ ::obj }}</a>
+                                            </li>
                                         </ul>
                                     </div>
                                 </div>
@@ -117,7 +143,9 @@
                                     Date:
                                 </div>
                                 <div class="col-xs-12 col-sm-9">
-                                    <input class="form-control" ng-model="main.formData.sourcedate" placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.sourcedate }}" type="text">
+                                    <input class="form-control" ng-model="main.formData.sourcedate"
+                                        placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.sourcedate }}"
+                                        type="text">
                                 </div>
                             </div>
                         </div>
@@ -127,7 +155,8 @@
                                     Match Size:
                                 </div>
                                 <div class="col-xs-12 col-sm-9">
-                                    <input class="form-control" ng-model="main.formData.sourcematchsize" placeholder="e.g., 10-100" type="text">
+                                    <input class="form-control" ng-model="main.formData.sourcematchsize"
+                                        placeholder="e.g., 10-100" type="text">
                                 </div>
                             </div>
                         </div>
@@ -145,7 +174,9 @@
                                     Inside passages:
                                 </div>
                                 <div class="col-xs-12 col-sm-9">
-                                    <input class="form-control" ng-model="main.formData.targetmatchcontext" placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.targetmatchcontext }}" type="text">
+                                    <input class="form-control" ng-model="main.formData.targetmatchcontext"
+                                        placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.targetmatchcontext }}"
+                                        type="text">
                                 </div>
                             </div>
                         </div>
@@ -155,7 +186,9 @@
                                     Author:
                                 </div>
                                 <div class="col-xs-12 col-sm-9">
-                                    <input class="form-control" ng-model="main.formData.targetauthor" placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.targetauthor }}" type="text">
+                                    <input class="form-control" ng-model="main.formData.targetauthor"
+                                        placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.targetauthor }}"
+                                        type="text">
                                 </div>
                             </div>
                         </div>
@@ -165,7 +198,9 @@
                                     Title:
                                 </div>
                                 <div class="col-xs-12 col-sm-9">
-                                    <input class="form-control" ng-model="main.formData.targettitle" placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.targettitle }}" type="text">
+                                    <input class="form-control" ng-model="main.formData.targettitle"
+                                        placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.targettitle }}"
+                                        type="text">
                                 </div>
                             </div>
                         </div>
@@ -176,12 +211,15 @@
                                 </div>
                                 <div class="col-xs-12 col-sm-9">
                                     <div class="dropdown">
-                                        <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu4" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                        <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu4"
+                                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                                             {{ targetModuleSelected }}
                                             <span class="caret"></span>
                                         </button>
                                         <ul class="dropdown-menu" aria-labelledby="dropdownMenu4">
-                                            <li ng-repeat="obj in moduleNames"><a href="#" ng-click="selectModule('targetmodulename', obj)">{{ ::obj }}</a></li>
+                                            <li ng-repeat="obj in moduleNames"><a href="#"
+                                                    ng-click="selectModule('targetmodulename', obj)">{{ ::obj }}</a>
+                                            </li>
                                         </ul>
                                     </div>
                                 </div>
@@ -193,7 +231,9 @@
                                     Date:
                                 </div>
                                 <div class="col-xs-12 col-sm-9">
-                                    <input class="form-control" ng-model="main.formData.targetdate" placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.targetdate }}" type="text">
+                                    <input class="form-control" ng-model="main.formData.targetdate"
+                                        placeholder="e.g., {{ main.webConfig.databases[main.dbActive].examples.targetdate }}"
+                                        type="text">
                                 </div>
                             </div>
                         </div>
@@ -205,7 +245,8 @@
                     <div class="search-field">
                         Sort results by:
                         <div class="dropup" style="display: inline">
-                            <button aria-expanded="true" aria-haspopup="true" class="btn btn-default dropdown-toggle" data-toggle="dropdown" id="dropdownMenu1" type="button">
+                            <button aria-expanded="true" aria-haspopup="true" class="btn btn-default dropdown-toggle"
+                                data-toggle="dropdown" id="dropdownMenu1" type="button">
                                 {{ sorting }}
                                 <span class="caret"></span>
                             </button>
@@ -233,7 +274,8 @@
                         <div style="display: inline; margin-left: 10px;" ng-if="main.dbActive !== 'latin'">
                             Bible Filter:
                             <div class="dropup" style="display: inline">
-                                <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2"
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                                     {{ bibleFilter }}
                                     <span class="caret"></span>
                                 </button>
@@ -245,7 +287,8 @@
                             </div>
                         </div>
                         <span style="margin-left: 10px;" ng-show="main.webConfig.debug">
-                            <input ng-model="main.formData.duplicates" ng-true-value="'ignore'" type="checkbox">&nbsp;Ignore matches from duplicate works<br>
+                            <input ng-model="main.formData.duplicates" ng-true-value="'ignore'"
+                                type="checkbox">&nbsp;Ignore matches from duplicate works<br>
                         </span>
                     </div>
                 </div>
