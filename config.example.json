@@ -1,0 +1,27 @@
+{
+    "database": "commonplaces",
+    "user": "CHANGEME",
+    "password": "CHANGEME",
+    "modules": [
+        "Latin",
+        "EEBO-TCP",
+        "General Reference",
+        "History and Geography",
+        "Law",
+        "Literature and Language",
+        "Medecine, Science and Technology",
+        "Religion and Philosophy",
+        "Social Science and Fine Arts"
+    ],
+    "latinAuthors": [
+        "... see the deployed config; this list is long and not secret ..."
+    ],
+    "topAuthors": [
+        "... ditto ..."
+    ],
+    "topTitles": [
+        "... ditto ..."
+    ],
+    "debug": false,
+    "port": 443
+}

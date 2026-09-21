@@ -31,6 +31,10 @@ app.mount("/img", StaticFiles(directory="public/img"), name="img")
 with open("config.json") as config_file:
     CONFIG = json.load(config_file)
 
+# What /config/config.json is allowed to return. Everything else in config.json -
+# database, user, password, port - is server-side only and no frontend code reads it.
+PUBLIC_CONFIG_FIELDS = ("modules", "latinAuthors", "topAuthors", "topTitles", "debug")
+
 SORT_KEY_MAP = {
     -1: [""],
     0: ["passageidentcount DESC", "sourceauthor", "sourcetitle"],
@@ -173,7 +177,7 @@ def find_common_places(dbname: str, passage_id: int):
     filtered_authors = {}
     filtered_titles = {}
     with psycopg2.connect(
-        database=CONFIG["database"], user=CONFIG["user"], password=CONFIG["password"], host="localhost"
+        database=CONFIG["database"], user=CONFIG["user"], password=CONFIG["password"]
     ) as conn:
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         cursor.execute(
@@ -344,7 +348,7 @@ def full_text_query(
             query += f" ORDER BY {sorting} OFFSET {offset} LIMIT 40"
     results = {"fullList": []}
     with psycopg2.connect(
-        database=CONFIG["database"], user=CONFIG["user"], password=CONFIG["password"], host="localhost"
+        database=CONFIG["database"], user=CONFIG["user"], password=CONFIG["password"]
     ) as conn:
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         cursor.execute(query, query_values)
@@ -416,5 +420,10 @@ def full_text_facet(dbname: str, facet: str, request: Request):
 
 @app.get("/config/config.json")
 def export_config():
-    """Export config"""
-    return JSONResponse(CONFIG)
+    """Export the public half of the config.
+
+    Deliberately not CONFIG itself: that also carries the database name, user and
+    password, and this endpoint is served to anyone who asks. These five keys are
+    every field the frontend reads.
+    """
+    return JSONResponse({k: CONFIG[k] for k in PUBLIC_CONFIG_FIELDS if k in CONFIG})
