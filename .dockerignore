@@ -1,0 +1,16 @@
+# The secret must never enter the build context, let alone the image.
+config.json
+config.example.json
+
+.git/
+.gitignore
+__pycache__/
+*.pyc
+*.log
+
+# Not used at runtime: the corpus loader, the docs, and the pre-container launch script
+# that the entrypoint replaces.
+load_db.py
+web_server.sh
+README.md
+LICENSE
