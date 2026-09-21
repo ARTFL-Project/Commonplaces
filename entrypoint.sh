@@ -31,6 +31,12 @@ child=$!
 # row, exit and let `restart: unless-stopped` rebuild the container instead.
 while kill -0 "$child" 2>/dev/null; do
   sleep 15
-  pg_isready -q || { sleep 5; pg_isready -q || { echo "postgres gone; exiting"; shutdown; }; }
+  # -U postgres -d postgres matters. Bare pg_isready connects as the OS user, which is
+  # uid 482 "commonplaces" - a role that does not exist in this cluster. pg_isready still
+  # exits 0, because the server answered and that is all it asks, so the watchdog works
+  # either way; but the server logs FATAL: role "commonplaces" does not exist every 15
+  # seconds forever. A log full of harmless FATALs is how people learn to ignore real ones.
+  pg_isready -q -U postgres -d postgres \
+    || { sleep 5; pg_isready -q -U postgres -d postgres || { echo "postgres gone; exiting"; shutdown; }; }
 done
 wait "$child"
