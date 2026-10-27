@@ -17,9 +17,14 @@ ENV DEBIAN_FRONTEND=noninteractive LANG=en_US.utf8 LC_ALL=en_US.utf8
 
 # Busted weekly by the build arg, so `docker compose build --pull` actually applies
 # security updates instead of reusing a cached layer.
+# apt-get upgrade sits in this same layer, never a later one: a separate layer would keep every
+# replaced file in the image twice. Without it, base-image packages that nothing reinstalls
+# move only when Canonical rebuilds ubuntu:26.04.
 ARG REBUILD_DATE=unset
 RUN echo "rebuild: $REBUILD_DATE" \
- && apt-get update && apt-get install -y --no-install-recommends \
+ && apt-get update \
+ && apt-get upgrade -y \
+ && apt-get install -y --no-install-recommends \
       postgresql postgresql-contrib locales ca-certificates \
  && locale-gen en_US.UTF-8 \
  && update-locale LANG=en_US.UTF-8 \
