@@ -9,7 +9,7 @@ from collections import namedtuple
 import psycopg2
 import psycopg2.extras
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
@@ -24,10 +24,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.mount("/public", StaticFiles(directory="public"), name="public")
-app.mount("/components", StaticFiles(directory="public/components"), name="components")
-app.mount("/css", StaticFiles(directory="public/css"), name="css")
-app.mount("/img", StaticFiles(directory="public/img"), name="img")
+app.mount("/assets", StaticFiles(directory="public/dist/assets"), name="assets")
 
 with open("config.json") as config_file:
     CONFIG = json.load(config_file)
@@ -174,15 +171,9 @@ def build_query(request: Request):
 @app.get("/nav/{dbname}/query/search")
 @app.get("/nav/{dbname}/topic/{topicID}")
 @app.get("/nav/{dbname}/commonplace/search")
-def index(dbname="ecco"):
+def index():
     """Index file for app"""
-    if dbname is None:
-        dbname = "ecco"
-    with open("public/index.html") as index_file:
-        index_html = index_file.read()
-        index_html = index_html.replace(r"{{ .title }}", "Commonplace Cultures")
-        index_html = index_html.replace(r"{{ .dbSelected }}", dbname)
-    return HTMLResponse(index_html)
+    return FileResponse("public/dist/index.html")
 
 
 @app.get("/api/{dbname}/commonplaces/{passage_id}")
