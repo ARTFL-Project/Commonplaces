@@ -3,9 +3,14 @@
 # commonplaces: the FastAPI application and the PostgreSQL database it owns, in one
 # container, running as an unprivileged uid on a read-only root filesystem.
 #
-# There is no frontend build stage, because there is no frontend build: public/ is
-# AngularJS served as static files, and every URL it requests is relative. See
-# ../docker_containers_update/commonplaces/MIGRATION.md 3.6.
+# The Vue frontend in public/ is built in its own stage; only public/dist reaches the image.
+
+FROM node:26-trixie-slim AS web
+WORKDIR /src
+COPY public/package.json public/package-lock.json ./
+RUN npm ci --no-audit --no-fund
+COPY public/ ./
+RUN npm run build && test -f dist/index.html
 
 FROM ubuntu:26.04
 
@@ -69,12 +74,12 @@ ENV PATH=/opt/venv/bin:/usr/lib/postgresql/18/bin:$PATH \
     HOME=/tmp
 
 # WORKDIR is the application root because web_app.py opens config.json and mounts
-# public/, public/components, public/css and public/img by relative path - and all four
-# of those StaticFiles mounts must resolve at import time or the app will not start.
+# public/dist/assets by relative path - and that StaticFiles mount must resolve at import
+# time or the app will not start.
 WORKDIR /var/www/Commonplaces
 COPY web_app.py ./
 COPY top_author.txt top_titles.txt ./
-COPY public ./public
+COPY --from=web /src/dist ./public/dist
 COPY entrypoint.sh /entrypoint.sh
 
 USER 482:482

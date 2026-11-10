@@ -5,6 +5,8 @@ config.example.json
 .git/
 .gitignore
 __pycache__/
+public/node_modules/
+public/dist/
 *.pyc
 *.log
 
