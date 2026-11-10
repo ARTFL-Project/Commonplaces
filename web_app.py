@@ -13,6 +13,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
+from fastapi.exceptions import HTTPException
 
 # FastAPI application server
 app = FastAPI()
@@ -56,6 +57,14 @@ FULL_TEXT_FIELDS = {
     "sourcemodulename",
     "targetmodulename",
 }
+# Identifiers cannot be bound as query parameters, so every one that reaches SQL is checked against these.
+TABLES = {"ecco"}
+FILTER_FIELDS = {
+    f"{side}{column}"
+    for side in ("source", "target")
+    for column in ("author", "title", "matchcontext", "modulename", "date", "matchsize")
+} | {"passageident", "authorident"}
+FACET_FIELDS = {f"{side}{column}" for side in ("source", "target") for column in ("author", "title", "modulename", "date")}
 BOOLEAN_ARGS = re.compile(r"""(NOT \w+)|("[^"]+")|(\w+)""")
 QUERY_CONDITION = namedtuple("QueryConditions", ["joiner", "field", "operator", "value"])
 
@@ -71,13 +80,18 @@ def add_to_condition(query_conditions, joiner, field, operator):
     return query_conditions
 
 
+def check_table(dbname):
+    if dbname not in TABLES:
+        raise HTTPException(status_code=404, detail="Unknown database")
+
+
 def build_query(request: Request):
     """Build SQL query"""
     query_conditions = ""
     query_values = []
     for param, value in request.query_params.items():
-        if param in ("duplicates", "facet", "offset"):
-            continue  # TODO fix duplicates?
+        if param not in FILTER_FIELDS and param != "bible":
+            continue
         if value != "":
             if param != "sorting":
                 # if param == "duplicates":  TODO
@@ -174,6 +188,7 @@ def index(dbname="ecco"):
 @app.get("/api/{dbname}/commonplaces/{passage_id}")
 def find_common_places(dbname: str, passage_id: int):
     """Retrieve commonplaces"""
+    check_table(dbname)
     filtered_authors = {}
     filtered_titles = {}
     with psycopg2.connect(
@@ -330,6 +345,7 @@ def full_text_query(
     offset: Optional[int] = None,
 ):
     """Full text query"""
+    check_table(dbname)
     # TODO: replicate duplicate IDS functionality. Can't recall what this does...
     # duplicate_ids =
     query = f"SELECT sourceauthor, sourcetitle, sourcedate, sourceleftcontext, sourcematchcontext, sourcerightcontext, sourcephiloid, sourcemodulename, targetauthor, targettitle, targetdate, targetleftcontext, targetmatchcontext, targetrightcontext, targetphiloid, targetmodulename, passageident, passageidentcount, authorident FROM {dbname} WHERE "
@@ -388,6 +404,7 @@ def full_text_query(
 @app.get("/api/{dbname}/fulltextcount")
 def full_text_count(dbname: str, request: Request):
     """Get full text count"""
+    check_table(dbname)
     # TODO: duplicate ID functionality
     query = f"SELECT COUNT(*) FROM {dbname} WHERE "
     query_conditions, query_values = build_query(request)
@@ -402,6 +419,9 @@ def full_text_count(dbname: str, request: Request):
 @app.get("/api/{dbname}/fulltextfacet")
 def full_text_facet(dbname: str, facet: str, request: Request):
     """Get full text facet"""
+    check_table(dbname)
+    if facet not in FACET_FIELDS:
+        raise HTTPException(status_code=400, detail="Unknown facet")
     # TODO: duplicate ID functionality
     query_conditions, query_values = build_query(request)
     if facet.endswith("date"):
