@@ -1,22 +1,23 @@
-# The serving dependency set, tested on CPython 3.13 before this file existed.
+# The serving dependency set, on CPython 3.13.
 #
-# fastapi, starlette and uvicorn are held at exactly what has been deployed since 2021:
-# the migration that introduced this file is a packaging change, and its verification
-# method depends on the application behaving identically across it. Upgrading them is the
-# first change that should go out through the rebuilt pipeline, not part of it.
-#
-# The three that did move had to. See ../docker_containers_update/commonplaces/MIGRATION.md 3.5.
-fastapi==0.68.0
-starlette==0.14.2
-uvicorn==0.14.0
-aiofiles==0.7.0
+# fastapi, starlette and uvicorn were held at their 2021 versions through the migration
+# (../docker_containers_update/commonplaces/MIGRATION.md 3.5, now in git history) and moved
+# together on 2026-11-11: starlette 0.14.2 carried four HIGH CVEs, the last of them fixed
+# only in 1.3.1. All three are pinned exactly, so a weekly rebuild never changes the
+# framework under the application; a new finding in the weekly scan is a deliberate bump.
+fastapi==0.162.4
+starlette==1.10.0
+uvicorn==0.54.0
+
+# uvicorn.workers is deprecated; entrypoint.sh names this package's worker instead.
+uvicorn-worker==0.4.0
 
 # psycopg2-binary 2.9.1 publishes no wheel for 3.13 and its sdist needs pg_config and a
 # compiler; 2.9.10 is the first with one.
 psycopg2-binary==2.9.10
 
-# pydantic 1.8.2 does not build on 3.11+. Still v1, so no application code changes.
-pydantic>=1.10,<2
+# fastapi 0.162 requires pydantic 2. web_app.py never imports it.
+pydantic>=2.9,<3
 
 # gunicorn 20.1.0 is from 2021; 23.0.0 is what dvlf already runs.
 gunicorn==23.0.0

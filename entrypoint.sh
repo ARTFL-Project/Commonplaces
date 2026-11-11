@@ -20,7 +20,7 @@ shutdown() {
 }
 trap shutdown TERM INT
 
-gunicorn -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000 -w 4 \
+gunicorn -k uvicorn_worker.UvicornWorker -b 0.0.0.0:8000 -w 4 \
   --worker-tmp-dir /tmp \
   --access-logfile - --error-logfile - \
   web_app:app &
